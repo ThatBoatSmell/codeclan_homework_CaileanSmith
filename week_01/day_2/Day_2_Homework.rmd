@@ -21,7 +21,7 @@ glimpse(drinks_content)
 
 ```{r}
 drinks_content %>% 
-  select(Beverage_category, Beverage, Beverage_prep, Calories)
+  select(Beverage_category, Beverage, Beverage_prep, Calories) #I didn't programmatically solve this - I just looked at the the data                                                                 to see that there were no NA values
 ```
 
 3) Create a new variable (column) called calorie_diff, which stores the difference between 135 calories (135 calories = 10 cubes of sugar!) and the calories in each drink. (hint: you’ll want to subtract 135 from the calories to see which drink have more or less than 10 cups of sugar).
@@ -58,7 +58,7 @@ drinks_content %>%
   mutate(average_calories = mean(Calories)) %>%  #Average Calories = 193.8719 - Simplified to 194
     filter(Calories >= average_calories) %>% 
       group_by(Beverage_prep) %>% 
-        summarise(Beverage_prep, count = n()) %>% 
+        summarise(Beverage_prep, count = n()) %>% #summarise(Beverage_prep.. - Beverage_prep is unnecessary here, and causes the                                                        summarise to not 'collapse'. It already knows to look at this variable due to the                                                     group_by
           arrange(desc(count))                  #This doesn't feel like the cleanest way to do this
 ```
 
