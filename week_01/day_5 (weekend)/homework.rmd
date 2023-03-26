@@ -1,0 +1,162 @@
+---
+title: "Week 1 Weekend Homework"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+books <- read_csv("data/books.csv")
+```
+
+```{r}
+summary(books)
+view(books)
+```
+
+Finding the average(mean and median) ratings of Star Trek books 
+This method of filtering presents a potential problem - I potentially haven't identified all the Star Trek books, only the ones that happen to have Star Trek in the title. However, for the purposes of this homework, this will do.
+
+```{r}
+
+
+books_star_trek <- books %>%
+ filter(grepl("Star Trek", title)) %>%
+  mutate(mean_star_trek_rating = mean(average_rating),.after = average_rating,
+         median_star_trek_rating = median(average_rating))
+
+```
+
+
+```{r}
+# The below lines of code are not relevant - just checking that grepl functions the way I think it does, and to see if I can identify any other books missed by my original filter
+# books_next_generation <- books %>%
+#   filter(grepl("next generation", title))
+# books_deep_space_9 <- books %>%
+#   filter(grepl("deep space", title))
+# books_cat <- books %>% 
+#   filter(grepl("cat", title))
+```
+
+
+
+```{r}
+# What's the difference between the mean and median ratings and the actual ratings?  
+
+books_star_trek_averages <- books_star_trek %>% 
+  mutate(ratings_diff_mean = case_when(
+    average_rating > mean_star_trek_rating ~ "Greater than mean",
+    average_rating <  mean_star_trek_rating  ~ "Lower than mean",
+    TRUE ~ "Exactly Average"),
+    .after = authors) %>% 
+  mutate(ratings_diff_median = case_when(
+    average_rating > median_star_trek_rating ~ "Greater than median",
+    average_rating < median_star_trek_rating  ~ "Lower than median",
+    TRUE ~ "Exactly Average")) 
+books_star_trek_averages %>% 
+ select(title, ratings_diff_median, ratings_diff_mean, average_rating)
+
+# From these results, we can see that there are 7 books greater than the average rating, and 7 below.
+
+  
+```
+
+I want to create scatter plot to show the rating of each book in the Star Trek data set against the number of pages.
+In this scatter plot, i want to mark the mean rating and page numbers with lines.
+Before i do this, i need to create an average_page_number column in my data-set 
+
+```{r}
+
+books_star_trek <- books_star_trek %>% 
+  mutate(average_num_pages = mean(num_pages))
+
+star_trek_page_ratings <- books_star_trek %>%
+  ggplot(aes(x = num_pages, y = average_rating)) +
+  geom_point()+
+  geom_hline(yintercept = mean(books_star_trek$average_rating)) +
+  geom_vline(xintercept = mean(books_star_trek$num_pages))
+
+star_trek_page_ratings
+
+books_star_trek %>% 
+  select(title,mean_star_trek_rating, average_num_pages)
+
+#-------------------------------------------------------------------------------
+# This code results in an error - "Error in list2(...): object 'mean_star_trek_rating' not found. 
+
+# The reason this isn't working is that the geom_hline and geom_vline functions are expecting 
+# a single value, while I was trying to pass in an array of values. 
+
+# To fix this, i could re-assign mean_star_trek_rating and average_num_pages to be single numbers
+#   mean_star_trek_rating <- 3.725
+#   average_num_pages <- 382.7857
+
+# books_star_trek %>%
+#   ggplot(aes(x = num_pages, y = average_rating)) +
+#   geom_point()+
+#   geom_hline(yintercept = mean_star_trek_rating) +
+#   geom_vline(xintercept = average_num_pages)
+#-------------------------------------------------------------------------------
+```
+
+Out of curiousity, i decided to compare this spread to a similar graph depicting Agatha Christie novels. 
+This is in no means a fair or meaningful comparison, but oh well
+
+```{r}
+
+books_mystery <- books %>% 
+filter(grepl("Agatha Christie", authors))
+
+mystery_page_ratings <- books_mystery %>% 
+  ggplot(aes(x = num_pages, y = average_rating)) +
+  geom_point()+
+  geom_hline(yintercept = mean(books_mystery$average_rating)) +
+  geom_vline(xintercept = mean(books_mystery$num_pages))
+
+star_trek_page_ratings
+mystery_page_ratings
+```
+
+mystery_page_ratings presents a new question - what are the lower to 0 page results?
+
+```{r}
+books_mystery %>% 
+  filter(num_pages <= 100)
+
+# This shows that a lot of the low page count books are audio books. This can be seen in the Publisher column - Does this apply to the original data set?
+
+```
+
+Using grepl, I am attempting to find how many books in the lower page counts are audio books 
+This is assuming that low page count + the word "audio" in the publisher column means that it is an audio book.
+
+```{r}
+ 
+
+books %>% 
+  filter(num_pages <= 100) %>% 
+  mutate(audio = case_when(
+    publisher = grepl("Audio", publisher) ~ "Audiobook",
+    TRUE ~ "Not Audiobook"
+  )) %>% 
+  count(audio)
+```
+
+Going back to the original dataset, I want to find the highest rated book for each language code.
+
+I have attempted to ignore values where the rating is 5, as my investigation suggests that
+these ratings usually occur where there are very low numbers of ratings - Possibly only
+one. 
+
+
+```{r}
+
+# Slice used to show top 2 ratings to check that code is indeed trying to ignore 5.0 ratings
+books %>% 
+  group_by(language_code) %>% 
+  slice_max(average_rating != "5.0", n = 2, with_ties = FALSE) %>% 
+  select(title, language_code, average_rating)
+  
+
+```
+
