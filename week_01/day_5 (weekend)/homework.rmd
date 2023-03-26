@@ -15,7 +15,9 @@ view(books)
 ```
 
 Finding the average(mean and median) ratings of Star Trek books 
-This method of filtering presents a potential problem - I potentially haven't identified all the Star Trek books, only the ones that happen to have Star Trek in the title. However, for the purposes of this homework, this will do.
+This method of filtering presents a potential problem - I potentially haven't identified all the Star Trek books, 
+only the ones that happen to have Star Trek in the title. 
+However, for the purposes of this homework, this will do.
 
 ```{r}
 
@@ -29,7 +31,10 @@ books_star_trek <- books %>%
 
 
 ```{r}
-# The below lines of code are not relevant - just checking that grepl functions the way I think it does, and to see if I can identify any other books missed by my original filter
+# The below lines of code are not relevant - just checking that grepl functions 
+# the way I think it does, and to see if I can identify any other books missed by
+# my original filter
+# --------------------------------------------------------------------
 # books_next_generation <- books %>%
 #   filter(grepl("next generation", title))
 # books_deep_space_9 <- books %>%
@@ -38,10 +43,10 @@ books_star_trek <- books %>%
 #   filter(grepl("cat", title))
 ```
 
-
+ What's the difference between the mean and median ratings and the actual ratings?
 
 ```{r}
-# What's the difference between the mean and median ratings and the actual ratings?  
+  
 
 books_star_trek_averages <- books_star_trek %>% 
   mutate(ratings_diff_mean = case_when(
@@ -91,6 +96,9 @@ books_star_trek %>%
 #   mean_star_trek_rating <- 3.725
 #   average_num_pages <- 382.7857
 
+# This means that my initial assumption, where i created an average_page_number
+# column, was incorrect.
+
 # books_star_trek %>%
 #   ggplot(aes(x = num_pages, y = average_rating)) +
 #   geom_point()+
@@ -100,7 +108,7 @@ books_star_trek %>%
 ```
 
 Out of curiousity, i decided to compare this spread to a similar graph depicting Agatha Christie novels. 
-This is in no means a fair or meaningful comparison, but oh well
+This is by no means a fair or meaningful comparison, but oh well
 
 ```{r}
 
