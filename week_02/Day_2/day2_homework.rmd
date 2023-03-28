@@ -121,8 +121,10 @@ Use str_extract_all() with a regular expression to find out which Twitter users 
 
 ```{r}
 tweets %>% 
-  mutate(tweeted_to = str_extract_all(text, pattern = "@+[(?i)a-z0-9\\_]+")) %>% 
-  select(tweeted_to)
+  mutate(tweeted_to = str_extract_all(text, pattern = "@+[A-Za-z0-9\\_]+"), .after = text) %>% 
+  unnest_wider(tweeted_to, names_sep = "_") %>% 
+  select(tweeted_to_1:tweeted_to_6)
+ 
 
 ```
 
