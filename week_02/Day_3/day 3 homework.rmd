@@ -170,17 +170,30 @@ You can also include newlines "\n" when using cat().
 
 ```{r}
 function_q8 <- function(x)
-  if(is.vector(x) == TRUE){
-   y = str_split(x, pattern = "[:number:]")
-   count(y)
-  }
+  if (is.vector(x) == TRUE) {
+    row_height <- length(unique(x))
+    for (value in 1:length(x)) {
+      row_height 
+      cat("*")
+     
+      }
+    } else  {
+        cat("*", sep = "\n")
+      }
+  
+
+ 
 
 function_q8(another_vector)
+
+# I have given up for now
 ```
 
 ```{r}
-another_vector <- c(1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4)
-cat(another_vector)
+another_vector <- c(1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4)
+#cat(another_vector)
+
+
 
 ```
 
