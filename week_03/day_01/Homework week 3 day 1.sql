@@ -99,8 +99,9 @@ FROM employees
 WHERE (department = 'Engineering'
 AND fte_hours = 1)
 
--- /* Q15 */ Return a table containing each employees first_name, last_name, full-time equivalent hours (fte_hours), salary, and a new column effective_yearly_salary which should contain fte_hours multiplied by salary.
--- 
+-- /* Q15 */ Return a table containing each employees first_name, last_name, full-time equivalent hours (fte_hours), salary, 
+-- and a new column effective_yearly_salary which should contain fte_hours multiplied by salary.
+ 
 SELECT
 	first_name,
 	last_name,
