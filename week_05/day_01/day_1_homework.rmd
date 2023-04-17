@@ -1,0 +1,185 @@
+---
+title: "Week 5 - Day 1 - Homework"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(CodeClanData)
+qb_revenue_breakdown <- CodeClanData::qb_revenue_breakdown
+qb_monthly_sales <- CodeClanData::qb_monthly_sales
+qb_competitors <- CodeClanData::qb_competitors
+qb_device_data <- CodeClanData::qb_device_data
+```
+
+## MVP
+# Part 1
+
+Q1
+Take the data in the dataset qb_revenue_breakdown and make a stacked bar chart showing the sources of revenue across the two years in the dataset.
+
+```{r}
+qb_revenue_breakdown %>% 
+  ggplot() +
+  geom_bar(aes(x = Product, y= Revenue, fill = Year), stat = "identity")
+```
+
+Q2
+Make a line chart showing monthly sales of the “flagship product” - the ‘KwikBit Unit 1’ - over the last year. 
+This data is inside qb_monthly_sales, but you will need to use filter() or subset() (base R).
+
+```{r}
+qb_monthly_sales %>% 
+  filter(Cashflow == "Kwikbit Unit 1 Sales") %>% 
+  ggplot() +
+  geom_line(aes(x = Date, y = Amount))
+```
+
+Q3
+Make a line chart showing monthly revenue and costs over the last year. This data is also in qb_monthly_sales.
+
+```{r}
+qb_monthly_sales %>% 
+  filter(Cashflow != "Kwikbit Unit 1 Sales") %>% 
+  ggplot() +
+  geom_line(aes(x = Date, y = Amount, group = Cashflow))
+```
+
+Q4
+Show annual sales of personal fitness trackers over the last 5 years broken down by company as a ribbon plot (use geom_area). This data is in qb_competitors.
+
+```{r}
+qb_competitors %>% 
+  ggplot() +
+  geom_area(aes(x = Year, y = Revenue, fill = Company))
+```
+
+Q5
+Now show the sales from the four competitors as a line graph. 
+Include an extra layer that shows the data points used to make the lines.
+
+```{r}
+qb_competitors %>% 
+  ggplot(aes(x = Year, y = Revenue, colour = Company)) +
+  geom_line() +
+  geom_point()
+```
+
+Q6
+Now the company wants to compare the number of steps that their device counts vs. their competitors. 
+Make a line graph of the number of steps throughout time, and use faceting to compare between companies and people. 
+The data for this is in qb_device_data.
+
+```{r}
+qb_device_data %>% 
+  ggplot() +
+  geom_line(aes(x = hours, y = counts, colour = id)) +
+  facet_grid(id~device, labeller = "label_both")
+```
+
+## Part 2
+
+```{r}
+col_scheme <- c("#E89FE9", "#50434F", "#B6A7B5", "#F9A472", "#BD7040")
+```
+
+
+```{r}
+qb_revenue_breakdown %>% 
+  ggplot() +
+  geom_bar(aes(x = Product, y= Revenue, fill = Year), stat = "identity") +
+  labs(title = "Revenue by Product over 2018-2019") +
+  scale_fill_manual(values = c(
+    "2018" = "#F9A472",
+    "2019" = "#BD7040")) +
+  theme_bw() +
+  theme(axis.text = element_text(size = 12)) +
+  theme(axis.text.x = element_text(size = 10)) +
+  theme(axis.text.y = element_text(size = 10)) +
+  theme(title = element_text(size = 14))
+```
+
+```{r}
+qb_monthly_sales %>% 
+  filter(Cashflow == "Kwikbit Unit 1 Sales") %>% 
+  ggplot() +
+  geom_line(aes(x = Date, y = Amount), colour = "#50434F")+
+  scale_x_date(date_breaks = "1 month") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Monthly sales of KwikBit Unit 1")+
+  theme(axis.text = element_text(size = 12)) +
+  theme(axis.text.x = element_text(size = 10)) +
+  theme(axis.text.y = element_text(size = 10)) +
+  theme(title = element_text(size = 14))
+```
+
+```{r}
+library(scales)
+```
+
+```{r}
+qb_monthly_sales %>% 
+  filter(Cashflow != "Kwikbit Unit 1 Sales") %>% 
+  ggplot() +
+  geom_line(aes(x = Date, y = Amount, group = Cashflow, colour = Cashflow))+ 
+  scale_colour_manual(values = col_scheme) +
+  scale_x_date(date_breaks = "1 month") +
+  scale_y_continuous(breaks = c(1600, 2000, 2400, 2800)) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(y = "Sales Amounts", title = "Monthly Cost and Total Revenue 2018/2019")+
+  theme(axis.text = element_text(size = 12)) +
+  theme(axis.text.x = element_text(size = 10)) +
+  theme(axis.text.y = element_text(size = 10)) +
+  theme(title = element_text(size = 14))
+  
+```
+
+```{r}
+qb_competitors %>% 
+  ggplot() +
+  geom_area(aes(x = Year, y = Revenue, fill = Company)) +
+  scale_fill_manual(values = col_scheme) +
+  scale_y_continuous(labels = comma) +
+  theme_bw() +
+  labs(title = "Annual Sales of Rival Companies Products")+
+  theme(axis.text = element_text(size = 12)) +
+  theme(axis.text.x = element_text(size = 10)) +
+  theme(axis.text.y = element_text(size = 10)) +
+  theme(title = element_text(size = 14))
+  
+```
+
+```{r}
+qb_competitors %>% 
+  ggplot(aes(x = Year, y = Revenue, colour = Company)) +
+  geom_line() +
+  geom_point() +
+  scale_colour_manual(values = col_scheme)+ 
+  scale_y_continuous(labels = comma) +
+  theme_bw() +
+  labs(title = "Annual Sales of Rival Companies Products")+
+  theme(axis.text = element_text(size = 12)) +
+  theme(axis.text.x = element_text(size = 10)) +
+  theme(axis.text.y = element_text(size = 10)) +
+  theme(title = element_text(size = 14))
+```
+
+```{r}
+qb_device_data %>%
+  ggplot() +
+  geom_line(aes(x = hours, y = counts, colour = id)) +
+  facet_grid(id ~ device, labeller = "label_both") +
+  scale_colour_manual(values = col_scheme) +
+  theme_bw() +
+  labs(x = "Time in 24hr format",
+       y = "Count of Steps",
+       title = "Steps per Hour by ID and Device") +
+  theme(axis.text = element_text(size = 12)) +
+  theme(axis.text.x = element_text(size = 10)) +
+  theme(axis.text.y = element_text(size = 10)) +
+  theme(title = element_text(size = 14))
+  
+```
+
