@@ -1,0 +1,151 @@
+---
+title: "Week 05 - Day 02 - Homework"
+output: html_notebook
+---
+
+# MVP
+
+Question 1.
+
+Load in the libraries you need, and look at the backpack data. Take note of variable names and dimensions.
+
+```{r}
+library(CodeClanData)
+library(tidyverse)
+
+backpack <- CodeClanData::backpack
+colnames(backpack)
+nrow(backpack)
+ncol(backpack)
+
+```
+
+
+Question 2.
+
+What is the distribution of backpack weights that students are carrying? Choose an appropriate graph to show the distribution.
+
+```{r}
+backpack %>% 
+  ggplot(aes(x = backpack_weight)) +
+  geom_bar() +
+  scale_x_continuous(breaks = c(0:35))+
+  scale_y_continuous(n.breaks = 10)
+          
+```
+ 
+This shows that most of the students backpacks weigh between 5kg and 15kg (kg is assumed)
+
+Question 3.
+
+Are there differences in backpack weight between sex?
+
+```{r}
+backpack%>% 
+  ggplot(aes(x = backpack_weight, fill = sex)) +
+  geom_bar() +
+  scale_x_continuous(breaks = c(0:35))+
+  scale_y_continuous(n.breaks = 10)
+```
+
+This shows that there isn't much difference in backpack weight between sexs 
+
+Question 4.
+
+What is the relationship between body weight and backpack weight?
+
+```{r}
+backpack %>% 
+  ggplot(aes(x = backpack_weight, y = body_weight, colour = ratio)) +
+  geom_point() 
+  
+```
+This suggests that people tend to have a lighter backpack if they weigh less
+
+Question 5.
+
+Is this relationship different between men and women? Choose an appropriate plot and interpret your findings.
+
+```{r}
+backpack %>% 
+  ggplot(aes(x = backpack_weight, y = body_weight, colour = sex)) +
+  geom_point() 
+```
+ 
+This shows that the relationship between bodyweight and backpack weight does not seem to differ much between sexes
+
+Question 6.
+
+What proportion of students report back pain?
+
+```{r}
+backpack %>% 
+  mutate(back_problems = as.logical(back_problems)) %>%
+  count(back_problems) %>%
+  ggplot(aes(x = back_problems, y = n, fill = back_problems)) +
+  geom_col() 
+
+```
+ 
+This shows that around 70% of students do not report back pain
+
+Question 7.
+
+Is this proportion different between men and women?
+
+```{r}
+backpack %>% 
+  mutate(back_problems = as.logical(back_problems)) %>%
+  group_by(sex) %>% 
+  count(back_problems) %>%
+  ggplot(aes(x = back_problems, y = n, fill = sex)) +
+  geom_col() +
+  facet_wrap(~sex)
+
+```
+
+This shows that while it is still true that when looking at both sexes, the majority do not report back problems.
+However, this proportion is smaller when looking at females
+
+Question 8.
+
+Now you’ve investigated your data separately, create plots to describe the relationship between backpack weight, body weight, gender and reported backpain.
+
+Try both backpack_weight and body_weight as well as the ratio.
+
+```{r}
+
+backpack %>% 
+  ggplot(aes(x = backpack_weight, y = body_weight)) +
+  geom_point(aes(colour = back_problems)) +
+  scale_colour_gradient(low = "seagreen", high = "firebrick3") +
+  facet_grid(~sex)
+  
+  
+```
+In this case, No back pain is represented as green while reported back pain is red. 
+The graph shows that backpain is more common in Females, although there appears to be no direct relationship with bodyweight or backpack weight
+Males show less backpain, and is reported only where bodyweight trends upwards.
+
+# EXT
+Question 1.
+
+Does reported backpain differ across the year groups? Ignore year 0 in your data.
+
+```{r}
+backpack %>% 
+  filter(year != 0) %>% 
+  mutate(back_problems = as.logical(back_problems)) %>%
+  group_by(year) %>% 
+  count(back_problems) %>%
+  ggplot(aes(x = year, y = n, colour = back_problems))+
+  geom_point()+
+  scale_fill_manual()+
+  scale_x_continuous(breaks = c(1:6)) +
+  labs(y = "Back Pain reported")
+                      
+```
+
+This shows that back pain is reported most commonly from years 3 to 5, but in all years, it is more common for students to not report back pain
+
+
