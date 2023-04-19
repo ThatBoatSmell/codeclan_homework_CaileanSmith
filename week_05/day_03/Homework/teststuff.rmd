@@ -1,0 +1,36 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+
+data(package = "CodeClanData") 
+data(package = "ggplot2")
+data(package = "dplyr")
+data(package = "datasets")
+```
+
+```{r}
+game_data <- CodeClanData::game_sales
+```
+
+```{r}
+game_data %>% 
+  arrange(desc(critic_score)) %>% 
+  mutate(avg_critic_score = mean(critic_score)) %>% 
+  group_by(publisher)
+
+
+```
+```{r}
+game_data %>% 
+  filter(publisher == "Ubisoft") %>% 
+  ggplot(aes(x = year_of_release, y = sales, fill = critic_score)) + 
+  geom_col()
+  
+  
+  
+```
+
