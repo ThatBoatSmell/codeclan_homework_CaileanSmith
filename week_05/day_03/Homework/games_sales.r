@@ -1,7 +1,4 @@
-library(shiny)
-library(tidyverse)
-library(shinyWidgets)
-library(bslib)
+source("librarys.R")
 
 game_data <- CodeClanData::game_sales
 
@@ -48,7 +45,7 @@ server <- function(input, output, session) {
   
   output$publisher_out <- renderPlot(game_data %>% 
     filter(publisher == input$publisher_input,
-           genre == input$genre_input) %>% 
+           genre %in% input$genre_input) %>% 
     ggplot(aes(x = year_of_release, y = sales, fill = critic_score)) + 
     geom_col()+
     scale_fill_gradient(low = "saddlebrown", high = "turquoise1") +
