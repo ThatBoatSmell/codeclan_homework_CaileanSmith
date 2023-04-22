@@ -55,7 +55,10 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   
-  # 
+  # This creates a new column based on the region the user selected, 
+  # which supplies the Year a card was released in said Region
+  # It then groups by this newly created column so it can be used
+  # for plotting the line chart
   
   filtered_if <- eventReactive(eventExpr = input$region_input,
                                valueExpr = {
