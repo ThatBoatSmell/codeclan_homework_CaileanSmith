@@ -59,6 +59,15 @@ cards_wide %>%
   geom_line() +
   geom_point()
 
+cards_wide %>% 
+  mutate(ocg_release_year = as.numeric(format(ymd(ocg_release),'%Y'))) %>% 
+  filter(type == "Normal Monster") %>% 
+  group_by(ocg_release_year) %>% 
+      mutate(avg_stat_total_by_year = floor(mean(stat_total))) %>% 
+      ggplot(aes(x = ocg_release_year, y = avg_stat_total_by_year)) +
+      geom_line(aes(colour = attribute)) +
+      geom_point(aes(shape = attribute))
+         
 
 cards_wide %>% 
   select(type) %>% 
@@ -66,6 +75,21 @@ cards_wide %>%
   filter(!grepl("Trap Card", type))
 #ggsave("stats by year.png")
 ```
+
+```{r}
+cards_wide %>% 
+  select(attribute) %>% 
+  drop_na(attribute) %>% 
+  distinct(attribute)
+
+```
+Link monsters do not have DEf values and are listed as NA - need to convert these to 0 or only add atk for stat total on links
+
+```{r}
+cards_wide %>% 
+  mutate(stat_total = case_when(
+    type == "Link Monster" ~ atk,
+    TRUE ~ atk+def))
 
 
 

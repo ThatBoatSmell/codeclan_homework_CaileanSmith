@@ -1,5 +1,6 @@
 library(shiny)
 source("library_data.R")
+source("theme.R")
 
 # WARNING: THIS LOADS VERY SLOWLY DUE TO THE SIZE OF THE DATASET
 # I'd slim it down, but I want to build around the whole dataset later
@@ -12,9 +13,26 @@ source("library_data.R")
 # Ideally, i'd like to compare other values (e.g length of card effect)
 
 ui <- fluidPage(
-  titlePanel("Yu-gi-oh Card data looker-atter"),
-  titlePanel("But so far all it compares is average stat totals(atk+def) by Year"),
-  tabsetPanel(
+  # This theme and image section is attempting to emulate the site where the data set was taken
+  # For this, may need to make a grid to align the text between the two flames
+  theme = bslib_yeti_theme,
+  fluidRow(
+    titlePanel(
+      
+      
+      
+      title = "Yu-gi-oh Card data looker-atter"),
+    img(src = "fire.gif",align = "right", style = "width: 50px"),
+    
+      
+        img(src = "fire.gif", style = "width: 50px")
+        
+      ),
+ # titlePanel("Yu-gi-oh Card data looker-atter"),
+ fluidRow(
+  titlePanel("But so far all it compares is average stat totals(atk+def) by Year")
+  ),
+ tabsetPanel(
     tabPanel(
       title = "Select Parameters",
       fluidRow(
@@ -30,10 +48,12 @@ ui <- fluidPage(
         ),
         column(
           width = 4,
+          # I want to make a multiple selection input, but the graphs would not display correctly
+          # Will need to correct 
           selectInput(
             inputId = "attribute_input",
             label = "Select Monster Attribute",
-            choices = unique(cards_wide$attribute)
+            choices = attribute_list
           )
         )
       ),
@@ -51,6 +71,7 @@ ui <- fluidPage(
     )
   )
 )
+
 
 
 server <- function(input, output, session) {
@@ -71,15 +92,22 @@ server <- function(input, output, session) {
     mutate(release_year = as.numeric(format(ymd(tcg_release),'%Y'))) %>% 
     group_by(release_year)
   })
+  
   output$output_plot<- renderPlot({ 
     filtered_if() %>% 
-      filter(attribute == input$attribute_input) %>% 
+      filter(type %in% input$monster_input) %>% 
+      filter(attribute %in% input$attribute_input) %>% 
       mutate(avg_stat_total_by_year = floor(mean(stat_total))) %>% 
-      ggplot(aes(x = release_year, y = avg_stat_total_by_year , 
-                 colour = input$attribute_input,
-                 shape = input$attribute_input)) +
-      geom_line() +
-      geom_point()
+      arrange(attribute) %>% 
+      ggplot(aes(x = release_year, y = avg_stat_total_by_year)) +
+      geom_line(aes(colour = attribute)) +
+      geom_point(aes(shape = attribute)) +
+      labs(
+        title = "Average stat total by release year",
+        x = "Release Year",
+        y = "Average ATK + DEF") +
+      theme_bw()
+      
   })            
 }
 
