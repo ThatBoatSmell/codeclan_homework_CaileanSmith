@@ -1,0 +1,92 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(gtools)
+library(tidyverse)
+source('prob.R')
+titanic <- read_csv("data/titanic.csv")
+```
+1.1 MVP
+
+Titanic
+```{r}
+titanic <- titanic %>% 
+  mutate(class = case_when(
+    class == "3rd" ~ "passenger",
+    class == "2nd" ~ "passenger",
+    class == "1st" ~ "passenger",
+    TRUE ~ "Crew")) 
+
+titanic %>% 
+  filter(class == "Crew") %>% # 890 rows
+  filter(survived == "yes") # 211 rows
+
+(211/890)*100
+# crew had a 24% survival rate
+
+```
+
+```{r}
+titanic %>% 
+  filter(class == "passenger") %>%  # 1317 rows
+  filter(survived == "yes") # 500 rows
+
+(500/1317)*100
+# Passengers had a 38% survival rate
+```
+
+Passengers had a higher survival rate 
+
+1.2 
+Probability Consolidation Questions
+
+Question 1.
+If I roll a six-sided dice once, what is the probability of getting a number less than 5?
+```{r}
+(4/6)*100
+# around 67%
+```
+
+Question 2.
+How many outcomes are there in the sample space of an experiment in which we toss three dice?
+```{r}
+rolldie(3, nsides = 6)
+# 216 outcomes
+```
+Question 3.
+In an experiment where we roll four dice:
+
+how many outcomes are in the event where the total of the four dice equals (5, 6 or 7)? - 34
+what is the probability of this event? - (34/1296) = 0.02623457
+what assumptions do we apply in answering part ii? - We assume that the dice are not weighted, and that the randomisation is completely fair
+
+```{r}
+rolldie(4, nsides = 6) %>% 
+  mutate(total = X1+X2+X3+X4) %>% # 1296 outcomes
+  filter(total == 5 | total == 6 | total == 7) # 34 outcomes
+```
+
+Question 6.
+If I draw a single card from a 52-card deck, and it is black, what is the probability that its suit is spades?
+
+
+```{r}
+cards(jokers = FALSE) %>% 
+  mutate(black_card = case_when(
+    suit == "Club" ~ TRUE,
+    suit == "Spade" ~ TRUE,
+    TRUE ~ FALSE
+  )) %>% 
+  filter(black_card == TRUE) %>%  # drawing a black card = 26 outcomes
+  filter(suit == "Spade") # card is a spade = 13 outcomes
+
+# drawing spade in event of black card = 13/26 = 1/2
+# drawing black card knowing it is a black card = 26/26 
+
+(13/26)/(26/26)
+
+```
+I think
