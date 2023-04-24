@@ -17,15 +17,12 @@ ui <- fluidPage(
   # For this, may need to make a grid to align the text between the two flames using actual HTML/CSS
   theme = bslib_boys_theme,
   fluidRow(
-    titlePanel(
-      
-       
-      
-      title = "Yu-gi-oh Card data looker-atter"),
-   img(src = "fire.gif",align = "left", style = "width: 75px"),
-    img(src = "fire.gif", style = "width: 75px")
+      column(4,img(src = "fire.gif",align = "right", style = "width: 50px")),
+      column(4, titlePanel("Yu-gi-oh Card data looker-atter")),
+      column(4, img(src = "fire.gif",align = "left", style = "width: 50px"))
         
       ),
+
  # titlePanel("Yu-gi-oh Card data looker-atter"),
  fluidRow(
   titlePanel("But so far all it compares is average stat totals(atk+def) by Year")
@@ -51,7 +48,9 @@ ui <- fluidPage(
           selectInput(
             inputId = "attribute_input",
             label = "Select Monster Attribute",
-            choices = attribute_list
+            choices = attribute_list,
+            multiple = TRUE, 
+            selected = "DARK"
           )
         )
       ),
@@ -95,7 +94,8 @@ server <- function(input, output, session) {
     filtered_if() %>% 
       filter(type %in% input$monster_input) %>% 
       filter(attribute %in% input$attribute_input) %>% 
-      mutate(avg_stat_total_by_year = floor(mean(stat_total))) %>% 
+      group_by(attribute, release_year) %>% 
+      summarise(avg_stat_total_by_year = floor(mean(stat_total))) %>% 
       arrange(attribute) %>% 
       ggplot(aes(x = release_year, y = avg_stat_total_by_year)) +
       geom_line(aes(colour = attribute)) +
