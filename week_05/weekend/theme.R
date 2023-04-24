@@ -1,6 +1,6 @@
 library(bslib)
 
-bslib_yeti_theme <- bs_theme(
+bslib_boys_theme <- bs_theme(
   bg = "black",
   fg = "darkred",
   primary = "darkred",

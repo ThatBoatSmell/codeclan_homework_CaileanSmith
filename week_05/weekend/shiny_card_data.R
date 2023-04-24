@@ -10,22 +10,20 @@ source("theme.R")
 # This allows the user to see how stat-lines have developed over time - What was the average stats of 
 # a fire normal monster in 2000 vs now?
 
-# Ideally, i'd like to compare other values (e.g length of card effect)
+# Ideally, i'd like to compare other values (e.g length of card text)
 
 ui <- fluidPage(
   # This theme and image section is attempting to emulate the site where the data set was taken
-  # For this, may need to make a grid to align the text between the two flames
-  theme = bslib_yeti_theme,
+  # For this, may need to make a grid to align the text between the two flames using actual HTML/CSS
+  theme = bslib_boys_theme,
   fluidRow(
     titlePanel(
       
-      
+       
       
       title = "Yu-gi-oh Card data looker-atter"),
-    img(src = "fire.gif",align = "right", style = "width: 50px"),
-    
-      
-        img(src = "fire.gif", style = "width: 50px")
+   img(src = "fire.gif",align = "left", style = "width: 75px"),
+    img(src = "fire.gif", style = "width: 75px")
         
       ),
  # titlePanel("Yu-gi-oh Card data looker-atter"),
