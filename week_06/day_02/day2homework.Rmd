@@ -25,14 +25,13 @@ Question 3.
 For your top brand, plot the distribution of phone ratings as a probability density, overlaying a fitted normal distribution. 
 Do you think the normal distribution provides a good model of these ratings?
 
-I don't know if it's a good model - I dont really understand what the normal distribution is supposed to be showing. It looks like it lines up with the 
-histogram, which i think is a good thing
+The normal distribution isn't a good model, as the data has two pretty even "peaks" - This tells us that the distribution can't fall into "normal" parameters
 
 ```{r}
 samsung_sd_mean <- phones %>% 
   filter(brand == "Samsung") %>% 
   summarise(mean_rating = mean(rating),
-         sd_rating = sd(rating))
+           sd_rating = sd(rating))
 
 phones %>% 
   filter(brand == "Samsung") %>% 
@@ -45,7 +44,7 @@ phones %>%
       sd = samsung_sd_mean$sd_rating
     ),
     col = "red"
-  )
+  ) 
 ```
 
 Question 4.
