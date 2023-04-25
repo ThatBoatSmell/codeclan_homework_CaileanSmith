@@ -48,3 +48,29 @@ phones %>%
   )
 ```
 
+Question 4.
+We can be more quantitative in comparing the distribution of top brand ratings with a normal distribution. 
+You calculated the mean() and sd() of your distribution in an earlier question. 
+Use these values to calculate the proportions of ratings within one-, two- and three standard deviations of the mean. 
+Compare these proportions with those you expect for a normal distribution.
+
+```{r}
+samsung <- phones %>%
+  filter(brand == "Samsung") %>% 
+  select(rating)
+samsung %>% 
+  filter(rating >= samsung_sd_mean$mean_rating - samsung_sd_mean$sd_rating) %>%
+  filter(rating <= samsung_sd_mean$mean_rating + samsung_sd_mean$sd_rating) %>%
+  summarise(prop_within_1sd = n() / nrow(samsung))
+
+samsung %>% 
+  filter(rating >= samsung_sd_mean$mean_rating - (samsung_sd_mean$sd_rating * 2)) %>%
+  filter(rating <= samsung_sd_mean$mean_rating + (samsung_sd_mean$sd_rating *2)) %>%
+  summarise(prop_within_2sd = n() / nrow(samsung))
+
+samsung %>% 
+  filter(rating >= samsung_sd_mean$mean_rating - (samsung_sd_mean$sd_rating * 3)) %>%
+  filter(rating <= samsung_sd_mean$mean_rating + (samsung_sd_mean$sd_rating *3)) %>%
+  summarise(prop_within_3sd = n() / nrow(samsung))
+```
+These values don't fall in line with the Empirical 3-Sigma - They're probably not within a normal distribution
