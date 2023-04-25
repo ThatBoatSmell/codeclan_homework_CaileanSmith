@@ -1,0 +1,50 @@
+---
+title: "Week 6 - Day 2 - Homework"
+output: html_notebook
+---
+
+Question 1.
+Load the data, clean_names() and explore it.
+```{r}
+library(tidyverse)
+
+phones <- read_csv("data/20190928-items.csv") %>% 
+  janitor::clean_names()
+```
+
+Question 2.
+Find the brand with the highest numbers of phones in the dataset.
+```{r}
+phones %>% 
+  group_by(brand) %>% 
+  summarise(num_phones = n()) %>% 
+  arrange(desc(num_phones))
+```
+
+Question 3.
+For your top brand, plot the distribution of phone ratings as a probability density, overlaying a fitted normal distribution. 
+Do you think the normal distribution provides a good model of these ratings?
+
+I don't know if it's a good model - I dont really understand what the normal distribution is supposed to be showing. It looks like it lines up with the 
+histogram, which i think is a good thing
+
+```{r}
+samsung_sd_mean <- phones %>% 
+  filter(brand == "Samsung") %>% 
+  summarise(mean_rating = mean(rating),
+         sd_rating = sd(rating))
+
+phones %>% 
+  filter(brand == "Samsung") %>% 
+  ggplot(aes(x = rating)) +
+  geom_histogram(aes(y = after_stat(density)), colour= "white") +
+  stat_function(
+    fun = dnorm,
+    args = list(
+      mean = samsung_sd_mean$mean_rating,
+      sd = samsung_sd_mean$sd_rating
+    ),
+    col = "red"
+  )
+```
+
