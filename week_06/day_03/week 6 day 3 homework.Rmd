@@ -13,6 +13,8 @@ Load the data again, clean_names(), and familiarise yourself with it
 ```{r}
 ames <- read_csv("data/ames.csv") %>% 
   clean_names()
+ames %>% 
+head(5)
 ```
 Task 2.
 Investigate the distribution of lot_area. Is the distribution roughly normal? 
@@ -83,17 +85,20 @@ infer_resample_100 %>%
 EXT.
 
 TASK 1
-# Not really sure how to approach this one 
+
 ```{r}
+# right idea, but using logical didn't work - using 1 for true and 0 for false seems to do it
 year_built <- ames %>% 
   mutate(before_1920 = case_when(
-    year_built < 1920 ~ "TRUE",
-    TRUE ~ "FALSE"
+    year_built < 1920 ~ 1,
+    TRUE ~ 0
   ))
 
 infer_resample_2000 <- year_built %>% 
-  specify(response = before_1920, success = "TRUE") %>% 
+  specify(response = before_1920) %>% 
   generate(reps = 2000, type = 'bootstrap') %>% 
   calculate(stat = 'mean') 
+
+## All the rest goes here
 ```
 
