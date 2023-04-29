@@ -111,3 +111,5 @@ rbindlist(l)
 ?rbindlist
 ```
 
+hittr
+for mucking about with jsons - might let me skip the wrangling step

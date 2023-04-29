@@ -1,0 +1,110 @@
+---
+title: "Week 6 - Weekend Homework"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(infer)
+
+data("msleep")
+
+view(msleep)
+```
+_______________________________
+Question 2.
+Jabberwockies sleep for around 7 hours a night, on average. 
+Perform an appropriate statistical test to determine whether the mean sleep_total in the sampled population of animal types differs from the typical value for jabberwockies.
+
+H0: mean_sleep_total == 7
+Ha: mean_sleep_total != 7
+
+significance level: 0.05
+
+
+```{r}
+# calculate mean_sleep_total
+observed_stat_sleep <- msleep %>% 
+  summarise(mean_sleep_total = mean(sleep_total))
+
+observed_stat_sleep
+```
+
+```{r}
+# generate NULL distribution
+null_distribution_sleep <- msleep %>% 
+  specify(response = sleep_total) %>% 
+  hypothesise(null = "point", mu = 7) %>% 
+  generate(reps = 2000, type = "bootstrap") %>% 
+  calculate(stat = "mean")
+
+null_distribution_sleep %>% 
+  visualise(bins = 25) +
+  shade_p_value(obs_stat = observed_stat_sleep,
+                direction = "both")
+```
+```{r}
+null_distribution_sleep %>% 
+  get_p_value(obs_stat = observed_stat_sleep,
+                direction = "both") %>% 
+  pull() %>% 
+  format.pval()
+```
+Given that the p-value is lower than the significance level (almost 0% against 5%), We may reject H0 in favour of the alternative hypothesis that the mean sleep total is different to that of the jabberwocky
+_________________________________________
+Question 3.
+Perform an appropriate statistical test to determine whether omnivores sleep for significantly longer than herbivores, on average.
+
+H0: mean_sleep_total_omni >= mean_sleep_total_herb
+Ha: mean_sleep_total_omni < mean_sleep_time_herb
+
+significance level: 0.05
+
+```{r}
+# calculate mean_sleep_total for omnivores
+observed_stat_sleep_omni <- msleep %>% 
+  group_by(vore) %>% 
+  summarise(mean_sleep_total = mean(sleep_total)) %>% 
+  filter(vore == "omni") %>% 
+  select(mean_sleep_total)
+
+observed_stat_sleep_herbi <- msleep %>% 
+  group_by(vore) %>% 
+  summarise(mean_sleep_total = mean(sleep_total)) %>% 
+  filter(vore == "herbi") %>% 
+  select(mean_sleep_total)
+
+observed_stat_sleep_omni
+observed_stat_sleep_herbi
+```
+```{r}
+# generate NULL distribution
+null_distribution_sleep2 <- msleep %>% 
+  specify(response = sleep_total) %>% 
+  hypothesise(null = "point", mu = observed_stat_sleep_herbi$mean_sleep_total) %>% 
+  generate(reps = 2000, type = "bootstrap") %>% 
+  calculate(stat = "mean")
+
+null_distribution_sleep2 %>% 
+  visualise(bins = 25) +
+  shade_p_value(obs_stat = observed_stat_sleep_omni,
+                direction = "less")
+```
+
+```{r}
+null_distribution_sleep %>% 
+  get_p_value(obs_stat = observed_stat_sleep_omni,
+                direction = "less")
+```
+Given that our p value is 1, which is higher than our significance level of 0.05, we cannot reject H0 
+
+Question 4. 
+Perform an appropriate statistical test to determine whether the proportion of domesticated animal types in the population of animal types is greater than 5%.
+
+H0: prop_domesticated <= 0.05
+Ha: prop_domesticated > 5
+
+```{r}
+
+```
+
