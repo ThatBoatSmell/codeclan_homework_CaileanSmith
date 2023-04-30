@@ -102,9 +102,78 @@ Question 4.
 Perform an appropriate statistical test to determine whether the proportion of domesticated animal types in the population of animal types is greater than 5%.
 
 H0: prop_domesticated <= 0.05
-Ha: prop_domesticated > 5
+Ha: prop_domesticated > 0.05
+
+Significance level : 0.05
 
 ```{r}
+# Calculate proportion of domesticated animals
+msleep_domesticated <- msleep %>% 
+  mutate(is_domesticated = case_when(
+    conservation == "domesticated" ~ "true",
+    TRUE ~ "false"
+  ))
+
+domesticated_stat <- msleep_domesticated %>% 
+  summarise(prop = sum(is_domesticated == "true")/ nrow(msleep))
 
 ```
 
+```{r}
+# generate null distribution
+null_distribution_sleep_3 <- msleep_domesticated %>% 
+  specify(response = is_domesticated, success = "true") %>% 
+  hypothesise(null = "point", p = 0.05) %>% 
+  generate(reps = 2000, type = "draw") %>% 
+  calculate(stat = "prop")
+
+null_distribution_sleep_3 %>% 
+  visualise(bins = 15) +
+  shade_p_value(obs_stat = domesticated_stat$prop,
+                direction = "greater")
+```
+
+```{r}
+null_distribution_sleep_3 %>% 
+  get_p_value(obs_stat = domesticated_stat$prop,
+                direction = "greater")
+```
+
+p value is 0.011 (1.1%) which is lower than significance level of 0.05 (5%)
+The probability of an animal being domesticated is 0.1204819 (12%) - If H0 is true, this only happens
+1.1% of the time.
+We can reject H0 in favour of Ha
+________________________________
+
+1.2
+
+1. 
+One sample proportion test
+H0: prop_knows_coffee_shop <= 0.4
+Ha: prop_knows_coffee_shop > 0.4
+Draw
+
+2.
+Paired two sample mean test
+H0: click_through_A == click_through_B
+Ha: click_through_A != click_through_B
+Bootstrap
+
+3.
+One sample mean test
+H0: mean_width == 145mm
+Ha: mean_width != 145mm
+bootstrap
+
+_______________________________
+
+1.3
+
+1.
+p value > significance level - We therefore cannot reject H0 (that less than or equal to 40% of people know of coffee shop) in favour of Ha (more than 40% know)
+
+2.
+p value < significance level - We can therefore reject H0 (click through rate is the same for both tests) in favour of Ha (one is more successful than the other)
+
+3.
+p values > significance level - We therefore cannot reject H0 (the average mean width of parts is 145mm) in favour of Ha (average width of parts is different to 145mm)
