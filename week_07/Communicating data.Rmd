@@ -2,6 +2,8 @@
 title: "NYC_Bike_Homework"
 output: html_document
 date: "2023-05-01"
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -19,21 +21,28 @@ head(nyc_bikes)
 
 ```{r}
 # splitting start time and stop time into year, month, day, time
-nyc_bikes %>% 
+nyc_bikes_ext <- nyc_bikes %>% 
   mutate(start_day = day(start_time),
-         start_month = month(start_time),
-         start_year = year(start_time),
-         start_date = make_date(year = start_year, month = start_month, day = start_day),
-         start_hour = hour(start_time),
-         start_minute = minute(start_time),
-         start_second = second(start_time),
-         start_time = unite(start_hour, start_minute, start_second, sep = ":"),
-         .after = start_time) 
+         month = month(start_time),
+         year = year(start_time),
+         weekday = wday(start_time),
+         start_date = make_date(year = year, month = month, day = start_day),
+         stop_day = day(stop_time),
+         stop_date = make_date(year = year, month = month, day = stop_day)) %>% 
+# creating duration column
+  mutate(time_period = floor(as.period(stop_time - start_time, units = "minutes"))) %>% 
+  mutate(duration_mins = round(as.numeric(time_period, "minutes")))
 
-nyc_bikes %>% 
-  mutate(start_date = as_date(start_time), 
-         stop_date = as_date(stop_time),
-         .after = stop_time) %>% 
-  mutate(start_time = 
+nyc_bikes_ext
+```
+
+```{r}
+# visualise something i dunno yet
+nyc_bikes_ext %>% 
+  index_by(month) %>% 
+  filter(duration_mins < 2000) %>% 
+  ggplot(aes(x = weekday, y = duration_mins)) +`
+  geom_col()
+
 ```
 
