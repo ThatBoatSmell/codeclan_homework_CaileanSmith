@@ -1,0 +1,39 @@
+---
+title: "NYC_Bike_Homework"
+output: html_document
+date: "2023-05-01"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(tsibble)
+library(tsibbledata)
+
+nyc_bikes <- tsibbledata::nyc_bikes
+head(nyc_bikes)
+```
+
+```{r}
+# splitting start time and stop time into year, month, day, time
+nyc_bikes %>% 
+  mutate(start_day = day(start_time),
+         start_month = month(start_time),
+         start_year = year(start_time),
+         start_date = make_date(year = start_year, month = start_month, day = start_day),
+         start_hour = hour(start_time),
+         start_minute = minute(start_time),
+         start_second = second(start_time),
+         start_time = unite(start_hour, start_minute, start_second, sep = ":"),
+         .after = start_time) 
+
+nyc_bikes %>% 
+  mutate(start_date = as_date(start_time), 
+         stop_date = as_date(stop_time),
+         .after = stop_time) %>% 
+  mutate(start_time = 
+```
+
