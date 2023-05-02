@@ -1,25 +1,26 @@
 ---
 title: "NYC_Bike_Homework"
-output: html_document
+output: 
+  html_document:
+    code_folding: hide
 date: "2023-05-01"
 editor_options: 
   chunk_output_type: inline
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
-```
 
-```{r}
+
+```{r, results = FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(tsibble)
 library(tsibbledata)
+library(leaflet)
 
 nyc_bikes <- tsibbledata::nyc_bikes
 head(nyc_bikes)
 ```
 
-```{r}
+```{r, results = FALSE, warning=FALSE}
 # splitting start time and stop time into year, month, day, time
 nyc_bikes_ext <- nyc_bikes %>% 
   mutate(start_day = day(start_time),
@@ -31,18 +32,113 @@ nyc_bikes_ext <- nyc_bikes %>%
          stop_date = make_date(year = year, month = month, day = stop_day)) %>% 
 # creating duration column
   mutate(time_period = floor(as.period(stop_time - start_time, units = "minutes"))) %>% 
-  mutate(duration_mins = round(as.numeric(time_period, "minutes")))
+   mutate(duration_mins = round(as.numeric(time_period, "minutes"))) 
 
 nyc_bikes_ext
 ```
 
-```{r}
-# visualise something i dunno yet
-nyc_bikes_ext %>% 
-  index_by(month = as.character(month)) %>% 
-  filter(duration_mins < 2000) %>% 
-  ggplot(aes(x = weekday, y = duration_mins)) +`
-  geom_col()
+Citi Bikes are a bike-rental service originating in New York City - For 10 years they have provided New Yorkers with an alternative way of
+getting around *The Big Apple*, *The City That Never Sleeps*, or whatever your preferred name is.
 
+Citi Bikes provide a year-round service, but who is using it?
+
+```{r}
+# rentals by month
+nyc_bikes_ext %>% 
+  index_by(month) %>% 
+  count() %>% 
+  ggplot(aes(x = month, y = n)) +
+  geom_col(fill = "skyblue", colour = "darkblue") +
+   labs(
+    x = "Month",
+    y = "Total Rentals",
+    title = "Rental Breakdown by month",
+    ) 
 ```
 
+From this, we can clearly see that rentals spike in July and August, presumably due to improved weather conditions, 
+while they fall off substantially in the winter.
+However, we can see that even in the colder months, these bikes are rented over 100 times - Not too bad!
+
+_But who is renting them?_
+
+## One-off customers vs Subscribers
+
+```{r}
+# type of trip
+nyc_bikes_ext %>% 
+  group_by(type) %>% 
+  count(month) %>% 
+  ggplot(aes(x = month, y = n, fill = type)) +
+  geom_col(show.legend = FALSE)+
+  geom_text(aes(label = n), size = 3, nudge_x = 0, nudge_y = 20)+
+  facet_wrap(~type) +
+  labs(
+    x = "\n Month",
+    y = "Total Rentals",
+    title = "Rental Breakdown by month",
+    subtitle = "Split by type of rental"
+    
+  ) +
+  scale_colour_brewer(guide = "none") +
+  scale_fill_manual(values = c(
+    "Customer" = "skyblue",
+    "Subscriber" = "darkblue"
+  )) +
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 1))
+```
+
+From this we can see, of the 10 bikes presented in this data set, that the vast majority of rentals are from subscribers.
+This is the case across every month - 
+
+```{r}
+nyc_bikes_ext %>% 
+  group_by(type) %>% 
+  count(month) %>% 
+  ggplot() +
+  geom_bar(aes(x = month, y = n, fill = type), stat = "identity", position = "fill")+
+ # geom_text(aes(label = n), size = 3, nudge_x = 0, nudge_y = 20)+
+  #facet_wrap(~type) +
+  labs(
+    x = "\n Month",
+    y = "Total Rentals",
+    title = "Rental Breakdown by month",
+    subtitle = "Proportion of rentals by type",
+    fill = "Rental by:"
+    ) +
+  scale_fill_manual(values = c(
+    "Customer" = "skyblue",
+    "Subscriber" = "darkblue"
+  )) +
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 1))
+```
+
+The proportion of subscribers completely dominates one-off customers, even during summer, the typical holiday (or vacation - when in Rome) season.
+This could suggest several things - Perhaps the price of one-off rental is off-putting to people who aren't already subscribed.
+It may also suggest that there is not sufficient marketing towards one-off customers, or that it just isn't clear how to rent a bike without a subscription.
+
+However, just from what is presented, there is nothing to suggest that these particular bikes might not be in a particularly attractive area to the 
+one-off use demographic - If this demographic is dominated by tourists, for example, and these bikes are located in a business district, there might be 
+less people who want to rent there as compared to a more tourist-friendly area.
+
+```{r}
+# take 100 random samples of starting longitude/latitudes then use them to create a leaflet
+long_lat <- as_tibble(nyc_bikes_ext) %>% 
+  select(start_long, start_lat)
+ 
+long_lat_samples <- sample_n(long_lat, 500)
+
+
+nyc_bike_map <- long_lat_samples %>% 
+  leaflet() %>% 
+  addTiles() %>% 
+  addMarkers(lng = ~long_lat_samples$start_long,
+             lat = ~long_lat_samples$start_lat,
+             clusterOptions = markerClusterOptions())
+
+nyc_bike_map
+```
+
+These bikes appear to all be centred in Jersey City - When compared to other areas of New York, it may not be the go-to spot for tourists.

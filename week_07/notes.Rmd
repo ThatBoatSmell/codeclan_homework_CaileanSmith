@@ -1,0 +1,93 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(tsibble)
+library(tsibbledata)
+
+nyc_bikes <- tsibbledata::nyc_bikes
+head(nyc_bikes)
+```
+
+```{r}
+# splitting start time and stop time into year, month, day, time
+nyc_bikes_ext <- nyc_bikes %>% 
+  mutate(start_day = day(start_time),
+         month = month(start_time, label = TRUE),
+         year = year(start_time),
+         weekday = wday(start_time, label = TRUE),
+         start_date = make_date(year = year, month = month, day = start_day),
+         stop_day = day(stop_time),
+         stop_date = make_date(year = year, month = month, day = stop_day)) %>% 
+# creating duration column
+  mutate(time_period = floor(as.period(stop_time - start_time, units = "minutes"))) %>% 
+   mutate(duration_mins = round(as.numeric(time_period, "minutes"))) 
+
+nyc_bikes_ext
+```
+
+```{r}
+# visualise rentals by weekday
+nyc_bikes_ext %>% 
+  index_by(weekday) %>% 
+  count() %>% 
+  ggplot() +
+  geom_col(aes(x = weekday, y = n))
+
+```
+
+```{r}
+# rentals by month
+nyc_bikes_ext %>% 
+  index_by(month) %>% 
+  count() %>% 
+  ggplot(aes(x = month, y = n)) +
+  geom_col() +
+   labs(
+    x = "Month",
+    y = "Total Rentals",
+    title = "Rental Breakdown by month",
+    ) 
+```
+
+```{r}
+# type of trip
+nyc_bikes_ext %>% 
+  group_by(type) %>% 
+  count(weekday) %>% 
+  ggplot() +
+  geom_col(aes(x = weekday, y = n, fill = type))
+
+nyc_bikes_ext %>% 
+  group_by(type) %>% 
+  count(month) %>% 
+  ggplot(aes(x = month, y = n, fill = type)) +
+  geom_col(show.legend = FALSE)+
+  geom_text(aes(label = n), size = 3, nudge_x = 0, nudge_y = 20)+
+  facet_wrap(~type) +
+  labs(
+    x = "Month",
+    y = "Total Rentals",
+    title = "Rental Breakdown by month",
+    subtitle = "Split by type of rental"
+    
+  ) +
+  scale_color_brewer(guide = "none") +
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 1))
+```
+
+```{r}
+# calculate mean trip time per month
+nyc_bikes_ext %>% 
+  group_by(month) %>% 
+  mutate(mean_duration = mean(duration_mins))
+  
+```
