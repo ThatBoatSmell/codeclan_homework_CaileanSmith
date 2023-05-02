@@ -3,7 +3,7 @@ title: "NYC_Bike_Homework"
 output: html_document
 date: "2023-05-01"
 editor_options: 
-  chunk_output_type: console
+  chunk_output_type: inline
 ---
 
 ```{r setup, include=FALSE}
@@ -23,9 +23,9 @@ head(nyc_bikes)
 # splitting start time and stop time into year, month, day, time
 nyc_bikes_ext <- nyc_bikes %>% 
   mutate(start_day = day(start_time),
-         month = month(start_time),
+         month = month(start_time, label = TRUE),
          year = year(start_time),
-         weekday = wday(start_time),
+         weekday = wday(start_time, label = TRUE),
          start_date = make_date(year = year, month = month, day = start_day),
          stop_day = day(stop_time),
          stop_date = make_date(year = year, month = month, day = stop_day)) %>% 
@@ -39,7 +39,7 @@ nyc_bikes_ext
 ```{r}
 # visualise something i dunno yet
 nyc_bikes_ext %>% 
-  index_by(month) %>% 
+  index_by(month = as.character(month)) %>% 
   filter(duration_mins < 2000) %>% 
   ggplot(aes(x = weekday, y = duration_mins)) +`
   geom_col()
