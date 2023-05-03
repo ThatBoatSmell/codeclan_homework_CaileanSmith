@@ -40,7 +40,9 @@ nyc_bikes_ext
 Citi Bikes are a bike-rental service originating in New York City - For 10 years they have provided New Yorkers with an alternative way of
 getting around *The Big Apple*, *The City That Never Sleeps*, or whatever your preferred name is.
 
-Citi Bikes provide a year-round service, but who is using it?
+Citi Bikes provide a year-round service, but how popular of a service is it?
+
+In this data-set, we have 10 rental bikes
 
 ```{r}
 # rentals by month
