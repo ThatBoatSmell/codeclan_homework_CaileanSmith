@@ -226,6 +226,6 @@ To say that our small sample is true of the entire service would be premature - 
 With that out the way, the conclusions we can draw from this sample is that additional measures may need to be taken to ensure growth during winter months 
 (e.g bike shelters, winter tires), and that one-off rentals are a market that are possibly not being targeted as well as they could be.
 
-```{r, echo=FALSE,fig.cap = "Thanks for reading", out.width = '100%'}
+```{r, echo=FALSE,fig.cap = "Thanks for reading", out.width = '80%'}
 knitr::include_graphics("images/extralarge.jpg")
 ```
