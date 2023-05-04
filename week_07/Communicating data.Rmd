@@ -181,11 +181,8 @@ ________________________________________________________________________________
 ```{r}
 # take 500 random samples of starting longitude/latitudes then use them to create a leaflet
 long_lat <- as_tibble(nyc_bikes_ext) %>% 
-  select(start_long, start_lat, type) %>% 
-  mutate(type_colour = case_when(
-    type == "Customer" ~ 1,
-    type == "Subscriber" ~ 2
-  ))
+  select(start_long, start_lat, type) 
+  
  
 long_lat_samples <- sample_n(long_lat, 500)
 
@@ -212,7 +209,7 @@ It is also a large residential section of New York, which might explain why the 
 as Subscribers may be using them in their day-to-day routine.
 
 Having looked at several samples, One-off customers tend to cluster around areas like parks or green-spaces, which may suggest that one-off rentals 
-tend to be for leisure, rather than practical reasons, such as cycling to work.
+tend to be for leisure, rather than practical reasons, such as cycling to or from work.
 
 
 This also means that it may be harder to draw any specific conclusions from this sample - While the above may suggest that the vast majority of rentals come
