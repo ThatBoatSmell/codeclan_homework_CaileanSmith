@@ -63,7 +63,7 @@ as they are with the bike - Once it is dropped off, they are invisible again.
 
 ### Warnings about the data-set
 
-Perhaps the biggest flaw in this data-set is the limited sample size - Of the approximately 17 thousand bikes available, this sample only covers <span style="text-decoration:underline">**10**</span> 
+Perhaps the biggest flaw in this data-set is the limited sample size - Of the however many thousands of bikes available, this sample only covers <span style="text-decoration:underline">**10**</span> 
 bikes.
 Additionally, we only have one year of data to look it. There is nothing to say that the conclusions we draw from this year will be similar to the year(s) before or after.
 
@@ -220,7 +220,7 @@ ________________________________________________________________________
 ## Conclusions
 
 While it may be tempting to say with certainty that Bike rentals go down in Winter, and that Subscribers tend to use the Citi Bikes service more than one-off Customers,
-we have only looked at a very small sample within a small area - Remember, New York city spans over 780km^2^ and has a population of 8.47 million (according to date from 2021).
+we have only looked at a very small sample within a small area - Remember, New York city spans over 780km^2^ and has a population of 8.47 million _(according to data from 2021)_.
 To say that our small sample is true of the entire service would be premature - However, they give a good point to start looking.
 
 With that out the way, the conclusions we can draw from this sample is that additional measures may need to be taken to ensure growth during winter months 
