@@ -63,7 +63,7 @@ as they are with the bike - Once it is dropped off, they are invisible again.
 
 ### Warnings about the data-set
 
-Perhaps the biggest flaw in this data-set is the limited sample size - Of the approximately 12 thousand bikes available, this sample only covers <span style="text-decoration:underline">**10**</span> 
+Perhaps the biggest flaw in this data-set is the limited sample size - Of the approximately 17 thousand bikes available, this sample only covers <span style="text-decoration:underline">**10**</span> 
 bikes.
 Additionally, we only have one year of data to look it. There is nothing to say that the conclusions we draw from this year will be similar to the year(s) before or after.
 
