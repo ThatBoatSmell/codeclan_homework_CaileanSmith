@@ -1,0 +1,115 @@
+---
+title: "Project Description Outline"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Names of group members
+
+Person 1, Person 2, Person 3, Cailean
+
+### Roles & responsibilities of each member
+
+**Person 1** worked on ...
+
+**Person 2** worked on ...
+
+**Person 3** worked on ...
+
+**Cailean** worked on creating the initial framework of the app, helping to create visualisations based on speciality data,
+helping to import everyone's initial work into the app framework and helping to maintain the app during merges and commits
+
+**Everyone** worked on ...
+
+### Brief description of dashboard topic
+
+Our dashboard contains ...
+
+Our topic is ...
+
+The dashboard outlines our topic in terms of ...
+
+### Stages of the project
+
+* Planning & dashboard wireframe
+* Git branching & version control
+* Choosing datasets
+
+and so on ...
+
+### Which tools were used in the project
+
+For this project, we used:
+
+Zoom: For stand-ups and paired/group working
+and for general "work hours" communication
+
+Slack: For discussion out of "work hours", 
+to keep in contact regarding anything we 
+were having issues with and general
+updates
+
+RStudio: To develop our app and code-base
+
+Excalidraw: For designing our framework, keeping ideas
+together and allowing collaborative input  
+
+GitHub: For version control, working on our own branches and
+for collaborating
+
+Google Slides: for creating our presentation   
+
+
+
+### How did you gather and synthesise requirements for the project?
+
+We synthesised the information given in the brief by working through the brief and discussing what points we wanted to focus on, 
+as well as looking through the datasets recommended to gain a better understanding of what direction we could go in.
+We prioritised getting an "MVP" version of the app running - at every point, we made sure that we were not straying too far from our framework
+
+```{r, echo=FALSE,fig.cap = "Our app framework"}
+
+knitr::include_graphics("images/excalidraw_framework.png")
+
+
+```
+
+Once we had the "MVP" version of the app, we then prioritised polishing each aspect, always referring back to the brief to make sure we were still working in the correct direction.
+
+
+
+### Motivations for using the data you have chosen
+
+We used the dataset on ... to answer ... and because it was ...
+
+### Data quality and potential bias, including a brief summary of data cleaning and transformations
+
+According to the About tab on the dataset page/dedicated page online, the data quality ...
+
+The dataset may/may not be biased because ...
+
+To clean the datasets we ...
+
+### How is the data stored and structured
+
+[**Hint**: This page offers a good starting point for understanding the data structure: https://guides.statistics.gov.scot/article/34-understanding-the-data-structure]
+
+The data is in the form of ...
+
+This means ...
+
+Benefits of storing the data like this are ...
+
+### Ethical and legal considerations of the data
+
+[**Hint:** this page contains information on the Open Government License which covers most datasets on statistics.gov.scot: http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/]
+
+There are no/There may be ethical considerations, because ...
+
+The datasets are covered by the Open Government License, which means ...

@@ -1,4 +1,5 @@
-source("librarys.R")
+#source("librarys.R")
+library(tidyverse)
 
 game_data <- CodeClanData::game_sales
 
@@ -11,7 +12,7 @@ genre <- game_data %>%
   pull()
 
 ui <- fluidPage(
-  theme = bs_theme(bg = "white", fg = "#ff0123", base_font = font_google("Dongle", local = TRUE)),
+ # theme = bs_theme(bg = "white", fg = "#ff0123", base_font = font_google("Dongle", local = TRUE)),
   titlePanel("Sales by Publisher and Genre"),
   tabsetPanel(
     tabPanel(title = "Select parameters",
