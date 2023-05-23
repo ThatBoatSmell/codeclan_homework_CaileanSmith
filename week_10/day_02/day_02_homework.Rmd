@@ -1,0 +1,108 @@
+---
+title: "Week 10 - Day 02 Homework"
+output: html_notebook
+---
+
+Homework - features and elements of multiple regression
+
+MVP
+
+```{r}
+library(tidyverse)
+library(mosaic) 
+library(janitor)
+library(GGally) 
+library(ggfortify)
+```
+
+1.
+```{r}
+housing_prices <- read_csv("data/housing_prices.csv")
+```
+
+```{r}
+housing_prices <-housing_prices %>% 
+  rename("long" = "longitude",
+         "lat" = "latitude",
+         "med_age" = "housing_median_age",
+         "pop" = "population",
+         "med_income" = "median_income",
+         "med_value" = "median_house_value")  # because the pair plot is almost impossible to read without shortening the names
+  
+```
+
+2.
+```{r message=FALSE, warning=FALSE}
+ggpairs(housing_prices, columns = c("total_rooms", "total_bedrooms"), progress = FALSE)
+```
+Strong correlation betwen total_rooms and total_bedrooms
+
+3. 
+```{r}
+housing_prices <- housing_prices  %>% 
+    select(!total_bedrooms)
+```
+
+4.
+```{r message=FALSE, warning=FALSE}
+ggpairs(housing_prices, progress = FALSE)
+```
+total_rooms, med_income and ocean_proximity could be worth looking into
+
+```{r}
+housing_prices %>% 
+  ggplot(aes(med_value, total_rooms)) +
+  geom_point()
+```
+
+```{r}
+housing_prices %>% 
+  ggplot(aes(med_value, med_income)) +
+  geom_point()
+```
+
+5. 4 (n-1 dummies)
+
+```{r}
+housing_prices %>% 
+  distinct(ocean_proximity)
+```
+6. Start with simple linear regression. Regress median_house_value on median_income and check the regression diagnostics.
+
+```{r}
+value_income_model <- lm(
+  formula = med_income ~ med_value,
+  data = housing_prices
+)
+```
+
+```{r}
+summary(value_income_model)
+autoplot(value_income_model)
+```
+Plot 1: No real pattern to residuals
+Plot 2: Residuals largely appear normally distributed with some variance at start and end
+Plot 3: not much evidence of heteroscedasticity, no funnelling
+
+Given p-value is (much) lower than 0.05 and the above is true, median value is a significant term in this model
+
+7. Add another predictor of your choice. Check your assumptions, diagnostics, and interpret the model.
+
+```{r}
+rooms_value_income_model <- lm(
+  formula = med_income ~ med_value + total_rooms,
+  data = housing_prices
+)
+```
+
+Assuming that as income goes up, median value and total rooms will increase as well
+
+```{r}
+summary(rooms_value_income_model)
+autoplot(rooms_value_income_model)
+```
+Plot 1: Residuals seem randomly distributed
+Plot 2: Residuals largely appear normally distributed with some variance at start and end, again
+Plot 3: not much evidence of heteroscedasticity, slight funnelling
+
+Given p-values are lower than 0.01, we can say that median_value and total_rooms are significant terms in this model
