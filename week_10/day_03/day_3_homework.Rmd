@@ -1,0 +1,242 @@
+---
+title: "Week 10 - Day 03 - Homework"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(mosaic) 
+library(janitor)
+library(GGally) 
+library(ggfortify)
+library(modelr)
+```
+
+```{r}
+housing_prices <- read_csv("data/kc_house_data.csv")
+
+housing_prices
+```
+1.
+
+```{r}
+housing_prices_tidy <- housing_prices %>% 
+  select(-c(id, date, zipcode, sqft_living15, sqft_lot15, lat, long)) %>%  # removing date as data only looks at one year - month to month changes are unlikely to be very drastic
+  mutate(waterfront = as.logical(waterfront),
+         renovated = case_when(
+           yr_renovated == 0 ~ FALSE,
+           TRUE ~ TRUE),
+         grade = case_when(
+           grade < 4 ~ "poor quality",
+           grade == 4 ~ "below average",
+           grade < 7 ~ "below average",
+           grade == 7 ~ "average",
+           grade < 11 ~ "above average",
+           grade >= 11 ~ "high quality"
+         ),
+         basement = case_when(
+           sqft_basement == 0 ~ FALSE,
+           TRUE ~ TRUE
+         ))  %>% 
+  select(-yr_renovated, -sqft_basement)
+
+
+housing_prices_tidy <- housing_prices_tidy %>% 
+  select(-sqft_above)
+# housing_prices %>% 
+#   distinct(view)
+# housing_prices %>% 
+#   distinct(condition)
+
+```
+2.
+
+```{r}
+alias(lm(price ~ ., data = housing_prices_tidy))
+
+# removed sqft_above in above chunk
+```
+
+3.
+
+```{r message=FALSE, warning=FALSE}
+housing_prices_numeric <- housing_prices_tidy %>%
+  select_if(is.numeric)
+
+housing_prices_nonnumeric <- housing_prices_tidy %>%
+  select_if(function(x) !is.numeric(x))
+
+housing_prices_nonnumeric <- housing_prices_nonnumeric %>% 
+  mutate(price = housing_prices_tidy$price)
+
+housing_prices_nonnumeric %>% 
+  distinct(grade)
+```
+
+
+```{r message=FALSE, warning=FALSE}
+ggpairs(housing_prices_numeric)
+ggpairs(housing_prices_nonnumeric)
+```
+strong correlation between price ~ sqft_living, bathrooms
+some correlation between price ~ bedrooms
+waterfront, renovated and grade all seem to have a relationship with price
+
+```{r}
+price_sqft_living <- lm(
+  formula = price ~ sqft_living,
+  data = housing_prices_tidy
+)
+
+
+price_sqft_living  
+```
+
+```{r}
+autoplot(price_sqft_living)
+summary(price_sqft_living)
+```
+residuals vs fitted: some evidence of a pattern, skewed
+normal Q-Q: somewhat follows line
+scale-location: funneling, some heteroscedasticity
+
+R^2 = 49%
+
+
+```{r}
+price_bathrooms <- lm(
+  formula = price ~ bathrooms,
+  data = housing_prices_tidy
+)
+```
+
+```{r}
+autoplot(price_bathrooms)
+summary(price_bathrooms)
+```
+Plots look ok.
+
+R^2 accounts for around 26% of variance
+
+
+```{r}
+autoplot(lm(
+  formula = price ~ bedrooms,
+  data = housing_prices_tidy
+))
+
+autoplot(lm(
+  formula = price ~ grade,
+  data = housing_prices_tidy
+))
+
+autoplot(lm(
+  formula = price ~ floors,
+  data = housing_prices_tidy
+))
+
+summary(lm(
+  formula = price ~ floors,
+  data = housing_prices_tidy
+))
+
+autoplot(lm(
+  formula = price ~ waterfront,
+  data = housing_prices_tidy
+))
+
+
+summary(lm(
+  formula = price ~ waterfront,
+  data = housing_prices_tidy
+))
+```
+
+going with price_sqft_living
+
+```{r}
+housing_resid <- housing_prices_tidy %>% 
+  add_residuals(model = price_sqft_living) %>% 
+  select(-c(price, sqft_living))
+
+housing_resid_numeric <- housing_resid %>%
+  select_if(is.numeric)
+
+housing_resid_nonnumeric <- housing_resid %>%
+  select_if(function(x) !is.numeric(x))
+
+housing_resid_nonnumeric <- housing_resid_nonnumeric %>% 
+  mutate(resid = housing_resid$resid)
+```
+
+```{r message=FALSE, warning=FALSE}
+ggpairs(housing_resid_numeric)
+ggpairs(housing_resid_nonnumeric)
+```
+some relationship between residuals and waterfront, grade?
+
+```{r}
+autoplot(lm(
+  formula = price ~ sqft_living + waterfront,
+  data = housing_prices_tidy
+))
+
+summary(lm(
+  formula = price ~ sqft_living + waterfront,
+  data = housing_prices_tidy
+))
+```
+```{r}
+autoplot(lm(
+  formula = price ~ sqft_living + grade,
+  data = housing_prices_tidy
+))
+
+summary(lm(
+  formula = price ~ sqft_living + grade,
+  data = housing_prices_tidy
+))
+
+price_living_grade <- lm(
+  formula = price ~ sqft_living + grade,
+  data = housing_prices_tidy
+)
+```
+
+Going with grade, as it has a higher R^2
+
+```{r}
+anova(price_sqft_living, price_living_grade)
+```
+
+```{r}
+housing_resid <- housing_prices_tidy %>% 
+  add_residuals(model = price_living_grade) %>% 
+  select(-c(price, sqft_living, grade))
+
+housing_resid_numeric <- housing_resid %>%
+  select_if(is.numeric)
+
+housing_resid_nonnumeric <- housing_resid %>%
+  select_if(function(x) !is.numeric(x))
+
+housing_resid_nonnumeric <- housing_resid_nonnumeric %>% 
+  mutate(resid = housing_resid$resid)
+```
+
+```{r message=FALSE, warning=FALSE}
+ggpairs(housing_resid_numeric)
+ggpairs(housing_resid_nonnumeric)
+```
+```{r}
+autoplot(lm(
+  formula = price ~ sqft_living + grade + waterfront,
+  data = housing_prices_tidy
+))
+
+summary(lm(
+  formula = price ~ sqft_living + grade + waterfront,
+  data = housing_prices_tidy
+))
+```
+

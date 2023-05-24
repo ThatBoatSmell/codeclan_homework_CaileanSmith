@@ -106,3 +106,260 @@ Plot 2: Residuals largely appear normally distributed with some variance at star
 Plot 3: not much evidence of heteroscedasticity, slight funnelling
 
 Given p-values are lower than 0.01, we can say that median_value and total_rooms are significant terms in this model
+
+______________________________________________________________________________________________________________________
+
+NOTES FROM THE REVIEW
+
+- Feature / Variable engineering - making new expressions of the data that we have
+  - treat our data as raw materials, from which we can build new and helpful things
+  
+Just using clear thinking about what it is that we have in our dataset, using some domain knowledge perhaps
+
+```{r}
+housing_prices_eng <- housing_prices %>% 
+  mutate(rooms_per_house = total_rooms / households,
+         people_per_house = pop / households,
+         rooms_per_person = total_rooms / pop)
+
+housing_prices_eng
+```
+Taking a loot at skim, especially the final column
+
+```{r}
+housing_prices_eng %>% 
+  skimr::skim() %>% 
+  view()
+```
+
+A lot of our variables are positively skewed - this is a bad recipe for a linear model
+
+Can log transform skewed (non-negative) data to bring the tail in line with the main body and make the distribution nice and normal (to a degree) - 
+"good resolution at the edges and the centre"
+
+e.g
+```{r}
+housing_prices_eng %>% 
+  ggplot(aes(x = med_income)) +
+  geom_histogram(colour = "white")
+
+housing_prices_eng %>% 
+  ggplot(aes(x = med_value)) +
+  geom_histogram(colour = "white")
+```
+
+Let's log transform our skewed variables
+
+```{r}
+housing_log <- housing_prices_eng %>% 
+  select(-c(ocean_proximity, lat, long, med_age)) %>% 
+  mutate(across(everything(), log)) %>%  # log transform everything but the 4 columns above
+  rename_with(~ paste0("log_", .x)) %>%  # renaming columns so that they start with "log_"
+  bind_cols(housing_prices_eng)
+```
+
+Let's plot some transformed distributions
+
+```{r}
+housing_log %>% 
+  ggplot(aes(x = log_med_income)) +
+  geom_histogram(colour = "white")
+
+housing_log %>% 
+  ggplot(aes(x = log_med_value)) +
+  geom_histogram(colour = "white")
+```
+Much more normal
+
+We now have a data-set with a richer feature set
+Now let's start looking for a relationship between variables, especially between our response/outcome variables and the potential predictors
+
+```{r}
+housing_log %>% 
+  ggplot(aes(x = med_income, y = med_value)) +
+  geom_point()
+```
+
+median house value caps at 500,000, it's possible that anything above this gets rounded down to 500,000
+
+What about ocean_proximity vs house value?
+
+```{r}
+housing_log %>% 
+  ggplot(aes(x = ocean_proximity, y = med_value)) +
+  geom_boxplot()
+```
+There appears to be some kind of relationship between ocean proximity and house value
+
+Can take a look at the ocean proximity locations using lat and long:
+
+```{r}
+housing_log %>% 
+  ggplot(aes(x = long, y = lat, colour = ocean_proximity)) +
+  geom_point()
+```
+
+Bit more feature engineering... Let's group these levels so that anything that is near water is named accordingly:
+
+```{r}
+housing_ocean <- housing_log %>% 
+  mutate(ocean_prox_grouped = if_else(
+    ocean_proximity %in% c("<1H OCEAN", "NEAR BAY", "NEAR OCEAN"), "NEAR WATER",
+    ocean_proximity
+  ))
+
+housing_ocean
+```
+
+```{r}
+housing_ocean %>% 
+  ggplot(aes(x = long, y = lat, colour = ocean_prox_grouped)) +
+  geom_point()
+```
+
+Then we can include this categorical variable in a ggpairs plot, colouring by level
+```{r message=FALSE, warning=FALSE}
+housing_ocean %>% 
+  select(log_med_value, med_age, log_med_income, ocean_prox_grouped) %>% 
+  ggpairs(aes(colour = ocean_prox_grouped, # use this to colour groups
+              alpha = 0.5)) # transparency
+```
+
+Because we put the response/outcome variable first in select(), the first column and row are the ones we're mainly interested in.
+Data is grouped by ocean proximity - can see that income and ocean proximity seem very related to house value
+
+ggpairs plots might give you more idea for variable engineering!
+
+e.g this might be what inspired me (Al Morgan) to group the ocean proximity levels 
+  - its a loop, not a straight road
+
+Will try the high correlation coefficient variable first (income), then will see about adding other predictors (e.g ocean proximity)
+
+Now let's try the other variables 
+
+```{r message=FALSE, warning=FALSE}
+housing_ocean %>% 
+  select(log_med_value,
+         log_total_rooms,
+         log_pop,
+         log_households, 
+         log_rooms_per_house,
+         log_people_per_house,
+         log_rooms_per_person) %>% 
+  ggpairs()
+```
+
+Not showing many great potential predictors. Maybe log_rooms_per_person (r = 0.256) and log_people_per_household (r = -0.210)
+
+Potential predictors:
+income
+ocean proximity
+maybe rooms per person
+maybe people per household
+
+Let's start fitting models
+  see which predictors work well
+  compare model performance
+  compare model diagnostics
+  add terms iteratively
+  
+End goal: explain/predict variation in house prices at the district level (in California)
+
+We want a model that:
+  we understand
+  we can use to help inform decision-making
+  explains variation well ("high" R^2)
+  doesn't break assumptions of linear regression
+  
+*back to it*
+
+Let's start by finding the best single-predictor model
+
+```{r}
+# with transformation
+mod1a <- lm(
+  formula = log_med_value ~ log_med_income,
+  data = housing_ocean
+)
+
+autoplot(mod1a)
+
+# Without transformation
+mod1a_nolog <- lm(
+  formula = med_value ~ med_income,
+  data = housing_ocean
+)
+
+autoplot(mod1a_nolog)
+```
+
+
+Diagnostics of transformed-data model aren't the best in the world - But better than the un-transformed model.
+Let's proceed.
+
+```{r}
+summary(mod1a)
+```
+
+Median income (logged) is a significant predicator of median house value (logged)
+
+How to interpret?
+
+log(med_value) ~ 11.09 (intercept) + 0.78 (b1) * log(med_income)
+
+"for every unit increase in log(med_income), there's a 0.78 unit increase in log(med_value)"
+
+
+Let's look at another candidate: Ocean proximity
+
+```{r}
+mod1b <- lm(
+  formula = log_med_value ~ ocean_prox_grouped,
+  data = housing_ocean
+)
+
+autoplot(mod1b)
+```
+
+```{r}
+summary(mod1b)
+```
+
+Reference class: The missing level (INLAND) has been merged into the intercept
+i.e everyone starts at 11.6, and can produce an estimate for each of the levels provided
+
+log(med_value) = 11.6 (intercept) + (1.26 * ISLAND) + (0.64 * NEAR WATER)
+
+e.g Island neighbourhood 
+                      = 11.6 + (1.26 * 1) + (0.6 * 0)
+                      = 11.6 + 1.26
+                      = 12.86
+
+mod1a (log(med_income) as predictor) has a higher R^2 than mod1b (ocean_prox as predictor) - But both do have significant p-values for predictors
+
+Going with mod1a. And that is one full round of trying to fit a model
+Now we can add terms iteratively.
+
+Here is where we come across a new idea:
+    Using our model error ("residuals") to help decide what variables to add next
+    
+```{r message=FALSE, warning=FALSE}
+library(modelr)
+
+housing_ocean %>% 
+  add_residuals(model = mod1a) %>% 
+  select(log_med_value, ocean_prox_grouped, log_rooms_per_house, log_people_per_house, resid) %>% 
+  ggpairs()
+```
+
+So ocean proximity group seems to be a very good candidate for explaining some of our model residual.
+Let's use it as our 2nd predictor in our multiple linear regression model.
+
+The process:
+   - Try out different candidates for our first predictor
+      - Chose the one with significant p's and highest R^2
+        -  Then added residuals to our dataset, compared these to other potential predictors
+           to see which might explain the remaining variance 
+            -  Best candidate (i.e low p and high R^2) will be our second predictor
+                -  Then add residuals to the dataset, compare these to remaining predictors
+                     - And so on, iteratively adding predictors
