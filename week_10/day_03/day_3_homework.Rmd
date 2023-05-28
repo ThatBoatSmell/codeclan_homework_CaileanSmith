@@ -239,4 +239,209 @@ summary(lm(
   data = housing_prices_tidy
 ))
 ```
+__________________________________________________________________________________________
+
+## Homework Review
+
+```{r}
+ggplot(housing_prices, aes(x = price)) +
+  geom_histogram()
+```
+
+Thoughts at this point
+  
+  - House price is highly right skewed
+  
+Potential Candidates
+
+Size of House (bedrooms, bathrooms, sqft)
+Location (waterfront, view, lat, long, zip)
+current state (yr_renovated, condition, grade)
+age(yr_built)
+
+Ultimate goal: build an explanatory model using multiple linear regression to explain variance in house price
+
+Explore Data further (relationships between candidates, relationships between our outcome (price))
+
+-> inform cleaning / preparation process
+
+```{r}
+head(housing_prices)
+
+housing_prices %>% 
+  count(waterfront)
+
+housing_prices %>% 
+  count(view) # Probably not worth including, because it's so heavily skewed
+
+housing_prices %>% 
+  count(condition)
+
+housing_prices %>% 
+  count(grade)
+
+```
+Overfitting 
+
+You can fit the data you're currently looking at too well (model isn't general - just built for the one dataset)
+
+Feature engineering
+- Create has_been_renovated
+- Drop a lot of columns (id, data, unuseful candidates)
+- Maybe relevel some categorical columns (grades)
+
+```{r}
+housing_prices %>% 
+  mutate(has_been_renovated = yr_renovated != 0) %>% 
+  count(has_been_renovated)
+```
+
+```{r}
+prices_trim <- housing_prices %>% 
+  select(-c(id, date)) %>% 
+  mutate(has_been_renovated = yr_renovated != 0,
+         waterfront = as.logical(waterfront)) %>% 
+  select(-yr_renovated)
+```
+
+```{r message=FALSE, warning=FALSE}
+prices_trim %>% 
+  slice_sample(prop = 0.8) %>% 
+  select(price, bedrooms, bathrooms, sqft_living, sqft_lot, floors, sqft_basement, sqft_above) %>% 
+  ggpairs()
+```
+
+Potential top house size candidate: sqft_living (looks linear and highly correlated)
+
+```{r message=FALSE, warning=FALSE}
+prices_trim %>% 
+  slice_sample(prop = 0.8) %>% 
+  select(price, waterfront, view, lat, long, zipcode) %>% 
+  ggpairs()
+```
+
+
+Location not looking great, maybe waterfront, maybe latitude
+
+```{r message=FALSE, warning=FALSE}
+prices_trim %>% 
+  slice_sample(prop = 0.8) %>% 
+  mutate(grade = as.factor(grade)) %>% 
+  select(price, has_been_renovated, condition, grade) %>% 
+  ggpairs()
+```
+
+grade looks like a good candidate, doesn't look like enough houses have been renovated to see a noticeable difference.
+We can only see a slight difference
+
+```{r}
+ggplot(prices_trim, aes(x = yr_built, y = price)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm")
+```
+yr_built isn't looking particularly related to house price
+
+After exploration, the potentially best candidates for each quality (age, condition, location, size) were found to be:
+
++ sqft_living
++ latitude or waterfront
++ grade
++ yr_built
+
+```{r message=FALSE, warning=FALSE}
+prices_trim %>% 
+  mutate(grade = as.factor(grade)) %>% 
+  select(price, sqft_living, lat, waterfront, grade, yr_built) %>% 
+  ggpairs()
+```
+
+Only big concern perhaps is the somewhat correlated yr_built and sqft_living (looks like houses have gotten larger over time)
+
+```{r}
+# create dataset with only candidates
+prices_candidates <- prices_trim %>% 
+  mutate(grade = as.factor(grade)) %>% 
+  select(price, sqft_living, lat, waterfront, grade, yr_built)
+  
+```
+
+# First predictor
+
+```{r}
+model_1a <- lm(price ~ sqft_living, data = prices_candidates)
+model_1b <- lm(price ~ yr_built, data = prices_candidates)
+model_1c <- lm(price ~ grade, data = prices_candidates)
+```
+
+```{r}
+summary(model_1a)
+summary(model_1b)
+summary(model_1c)
+```
+
+```{r}
+autoplot(model_1a)
+autoplot(model_1b)
+autoplot(model_1c)
+```
+
+After investigating the first predictor, model_1a (price ~ sqft_living) resulting in the highest value for R^2. It also showed evidence of non-linearity, 
+heteroskedasticity and the residuals did not look to be normally distributed
+
+After performing a log transformation on price, these problems decreased.
+
+```{r}
+model_1 <- lm(log(price) ~ sqft_living, data = prices_candidates)
+```
+
+# Second Predictor
+
+```{r message=FALSE, warning=FALSE}
+prices_candidates %>% 
+  add_residuals(model_1, var = "resid") %>% 
+  select(-sqft_living, -price) %>% 
+  ggpairs()
+```
+
+```{r}
+model_2a <- lm(log(price) ~ sqft_living + lat, data = prices_candidates)
+model_2b <- lm(log(price) ~ sqft_living + waterfront, data = prices_candidates)
+model_2c <- lm(log(price) ~ sqft_living + grade, data = prices_candidates)
+```
+
+```{r}
+summary(model_2a)
+summary(model_2b)
+summary(model_2c)
+```
+
+```{r}
+autoplot(model_2a)
+autoplot(model_2b)
+autoplot(model_2c)
+```
+
+While the diagnostics show an increase in heteroskedasticity, the residuals appear to show no clear trend and are normally distributed
+
+Our current best model for house price is 
+
+log(price) ~ sqft_living + lat
+
+
+## Model Interpretation
+
+The price of a house in King County can be explained by a combination of it's size (sqft of the living space) and its latitude (how far north it is)
+
+e.g For a house that's 1910 sqft (living space) located at lat = 47.56
+
+log(price) =  -62.56 +   (3.863e-04 * 1910)  +  (1.573 * 47.56)
+           = 12.98971
+    price  = e^(12.98971)    
+           = 437884.3
+           =~ 440,000
+           
+```{r}
+model_2a
+exp(12.98971) # exp is the reverse of log (ln)
+```
 

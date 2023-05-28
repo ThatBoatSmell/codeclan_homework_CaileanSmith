@@ -1,0 +1,345 @@
+---
+title: "Week 10 - Weekend Homework"
+output: html_notebook
+---
+```{r}
+library(tidyverse)
+library(tidyverse)
+library(modelr)
+library(GGally)
+library(ggfortify)
+```
+
+```{r}
+red_wine <- read_csv("data/wine_quality_red.csv")
+white_wine <- read_csv("data/wine_quality_white.csv")
+```
+
+```{r}
+head(red_wine)
+head(white_wine)
+```
+split into some groups to make the ggpair plot readable
+"The classes are ordered and not balanced (e.g. there are many more normal wines than excellent or poor ones)."
+
+# IMPORTANT: I don't know anything about Wine
+
+```{r}
+group_1 <- white_wine %>% 
+  select(fixed_acidity:chlorides, quality)
+
+group_2 <- white_wine %>% 
+  select(free_sulfur_dioxide:region)
+```
+
+
+
+
+```{r message=FALSE, warning=FALSE}
+group_1 %>% 
+  ggpairs()
+
+group_2 %>% 
+  ggpairs()
+```
+group_1: chlorides and volatile_acidity might matter
+group_2: Region might make a difference, as might alcohol.
+
+```{r}
+white_wine %>% 
+  skimr::skim()
+
+# lets try taking the log of the skewed things
+white_wine_alt <- white_wine %>% 
+  select(!c(wine_id, fixed_acidity, density, p_h, sulphates, alcohol, quality, region)) %>% 
+  mutate(across(everything(), log)) %>%  
+  rename_with(~ paste0("log_", .x)) %>% 
+  bind_cols(white_wine)
+
+group_3 <- white_wine_alt %>% 
+  select(starts_with("log_"), quality)
+```
+
+```{r message=FALSE, warning=FALSE}
+group_3 %>% 
+  ggpairs()
+```
+
+```{r}
+# Why is log_citric_acid broken
+
+group_3 %>% 
+  select(log_citric_acid) %>% 
+  arrange(desc(log_citric_acid)) %>% 
+  slice_tail(n = 10)
+
+# oh
+```
+```{r}
+group_3 <- group_3 %>% 
+  select(!log_citric_acid)
+```
+
+Break down region into europe or not europe to see if that matters
+
+```{r}
+white_wine %>% 
+  distinct(region)
+  
+white_wine_alt <- white_wine_alt %>% 
+  mutate(europe = case_when(
+    region == "Australia" ~ FALSE,
+    region == "USA" ~ FALSE,
+    TRUE ~ TRUE
+    )) 
+
+white_wine_alt %>% 
+  select(region, europe, quality) %>% 
+  ggpairs(aes(colour = region, alpha = 0.5))
+```
+Maybe it doesnt actually matter, but i'll try anyway
+
+what about sweetness?
+
+```{r message=FALSE, warning=FALSE}
+white_wine_alt <- white_wine_alt %>% 
+  # select(residual_sugar, quality) %>% 
+  mutate(median_sugar = median(residual_sugar),
+         mean_sugar = mean(residual_sugar),
+         sugar_to_mean = case_when(
+           residual_sugar > mean_sugar ~ "Greater",
+           residual_sugar == mean_sugar ~ "The same",
+           TRUE ~ "Lower"),
+         sugar_to_median = case_when(
+           residual_sugar > median_sugar ~ "Greater",
+           residual_sugar == median_sugar ~ "The same",
+           TRUE ~ "Lower")
+         ) %>% 
+  select(!c(mean_sugar, median_sugar)) 
+
+
+white_wine_alt %>% 
+  select(quality, residual_sugar, sugar_to_mean, sugar_to_median) %>% 
+   ggpairs()
+
+```
+
+Looks like being more or less sugary than the average makes a sort of difference
+
+```{r}
+model_1a <- lm(
+  formula = quality ~ alcohol,
+  data = white_wine_alt
+)
+
+summary(model_1a)
+autoplot(model_1a)
+```
+
+```{r}
+model_1b <- lm(
+  formula = quality ~ residual_sugar,
+  data = white_wine_alt
+)
+
+model_1b_log <- lm(
+  formula = quality ~ log_residual_sugar,
+  data = white_wine_alt
+)
+
+model_1b_mean <- lm(
+  formula = quality ~ sugar_to_mean,
+  data = white_wine_alt
+)
+
+summary(model_1b)
+autoplot(model_1b)
+
+summary(model_1b_log)
+autoplot(model_1b_log)
+
+summary(model_1b_mean)
+autoplot(model_1b_mean)
+
+# Sweetness of a wine compared to average might make a difference
+```
+```{r}
+model_1c <- lm(
+  formula = quality ~ region,
+  data = white_wine_alt
+)
+
+model_1c_alt <- lm(
+  formula = quality ~ europe,
+  data = white_wine_alt
+)
+
+summary(model_1c)
+autoplot(model_1c)
+
+summary(model_1c_alt)
+autoplot(model_1c_alt)
+
+# neither seem significant
+```
+
+```{r}
+model_1d <- lm(
+  formula = quality ~ chlorides,
+  data = white_wine_alt
+)
+
+model_1d_log <- lm(
+  formula = quality ~ log_chlorides,
+  data = white_wine_alt
+)
+
+summary(model_1d)
+autoplot(model_1d)
+
+summary(model_1d_log)
+autoplot(model_1d_log)
+
+# Not a very high R-squared
+```
+```{r}
+model_1e <- lm(
+  formula = quality ~ volatile_acidity,
+  data = white_wine_alt
+)
+
+summary(model_1e)
+autoplot(model_1e)
+
+```
+
+
+
+gonna go with alcohol for model 1
+
+```{r message=FALSE, warning=FALSE}
+# I forgot about this step, so i went back and did it, but its too late to change all the stuff i've already done
+
+white_wine_resid <- white_wine_alt %>% 
+  add_residuals(model = model_1a) %>% 
+  select(- c(quality, alcohol)) 
+
+group_1_resid <- white_wine_resid %>% 
+  select(!starts_with("log_")) %>% 
+  select(!wine_id) %>% 
+  select(fixed_acidity:total_sulfur_dioxide, resid)
+
+group_2_resid <- white_wine_resid %>% 
+  select(!starts_with("log_")) %>% 
+  select(!wine_id) %>% 
+  select(density:resid)
+
+ggpairs(group_1_resid)
+ggpairs(group_2_resid)
+```
+
+
+```{r}
+model_2a <- lm(
+  formula = quality ~ alcohol + region,
+  data = white_wine_alt
+)
+
+summary(model_2a)
+autoplot(model_2a)
+
+model_2a_alt <- lm(
+  formula = quality ~ alcohol + europe,
+  data = white_wine_alt
+)
+
+summary(model_2a_alt)
+autoplot(model_2a_alt)
+
+# ok fine region doesnt make a significant difference
+```
+```{r}
+model_2b <- lm(
+  formula = quality ~ alcohol + p_h,
+  data = white_wine_alt
+)
+
+summary(model_2b)
+autoplot(model_2b)
+```
+```{r}
+anova(model_1a, model_2b)
+```
+
+```{r}
+model_2c <- lm(
+  formula = quality ~ alcohol + sugar_to_mean,
+  data = white_wine_alt
+)
+
+summary(model_2c)
+autoplot(model_2c)
+```
+```{r}
+anova(model_1a, model_2c)
+```
+seems to be more significant than ph. Let's go with that
+
+```{r}
+model_3a <- lm(
+  formula = quality ~ alcohol + sugar_to_mean + p_h,
+  data = white_wine_alt
+)
+
+summary(model_3a)
+autoplot(model_3a)
+```
+```{r}
+anova(model_1a, model_3a)
+```
+
+```{r message=FALSE, warning=FALSE}
+white_wine_resid <- white_wine_alt %>% 
+  add_residuals(model = model_3a) %>% 
+  select(- c(quality, alcohol, sugar_to_mean, p_h, wine_id))
+
+group_1_resid <- white_wine_resid %>% 
+  select(!starts_with("log_")) %>% 
+  select(fixed_acidity:total_sulfur_dioxide, resid)
+
+group_2_resid <- white_wine_resid %>% 
+  select(!starts_with("log_")) %>% 
+  select(density:resid)
+
+ggpairs(group_1_resid)
+ggpairs(group_2_resid)
+```
+volatile_acidity might make a difference
+
+```{r}
+model_4a <- lm(
+  formula = quality ~ alcohol + sugar_to_mean + p_h + volatile_acidity,
+  data = white_wine_alt
+)
+
+summary(model_4a)
+autoplot(model_4a)
+```
+```{r}
+anova(model_3a, model_4a)
+```
+```{r}
+broom::glance(model_3a)
+print("gap") # just so i can tell which one is which 
+broom::glance(model_4a)
+```
+
+
+## Interpretation 
+
+It looks as if there is no one defining factor that makes a wine good - there doesn't seem to be a single variable that contributes to quality that much.
+From my investigation, it seems that alcohol content, sweetness (defined by sugar content being above or below the mean), ph and the level of volatile acidity 
+have some connection to quality. However, they only explain a small portion of the variance. 
+
+
+Please note, this interpretation may be flawed in that I forgot to compare to the residuals until later. 

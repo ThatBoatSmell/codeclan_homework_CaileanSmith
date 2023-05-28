@@ -1,0 +1,45 @@
+---
+title: "Week 10 - Weekend Homework Quiz"
+output: html_notebook
+---
+
+1. I want to predict how well 6 year-olds are going to do in their final school exams. 
+   Using the following variables am I likely under-fitting, fitting well or over-fitting? 
+   Postcode, gender, reading level, score in maths test, date of birth, family income.
+
+Given the number of variables and using common sense, it is likely that this model would be over-fitted. Some of these
+variables are unlikely to have any significant connection to test scores
+
+2. If I have two models, one with an AIC score of 34,902 and the other with an AIC score of 33,559 which model should I use?
+
+The model with the lower AIC score - 33,559
+
+3. I have two models, the first with: r-squared: 0.44, adjusted r-squared: 0.43. The second with: r-squared: 0.47, adjusted r-squared: 0.41. 
+   Which one should I use?
+   
+The second - While the adj-R^2 has gone up, this is likely due to adding more variables which have improved R^2
+
+4. I have a model with the following errors: RMSE error on test set: 10.3, RMSE error on training data: 10.4. Do you think this model is over-fitting?
+
+Given that the RMSE is higher in the training data, it's likely that the model has been overfit
+
+5. How does k-fold validation work?
+
+K-fold validation splits the model X times. It then goes through each split, making one the test split, and making the other (X - 1) training split.
+Then, it makes another split the test split, and the rest training splits.
+This continues until all the splits have had a go at being the test split.
+
+Once this process is finished, the average of all the errors is taken to give an idea of the models performance
+
+
+6. What is a validation set? When do you need one?
+
+If you are comparing multiple models, you might want to use a validation set to ensure that you aren't overfitting within the test set
+
+7. Describe how backwards selection works.
+
+In backwards selection, you start with all the possible variables in the model, then remove them one by one until you get the best model
+
+8. Describe how best subset selection works.
+
+In Best Subset (or exhaustive) selection, at every step it checks all possible combinations of predictors for the version with the highest R^2
