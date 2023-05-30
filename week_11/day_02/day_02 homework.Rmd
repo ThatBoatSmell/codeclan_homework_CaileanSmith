@@ -1,0 +1,160 @@
+---
+title: "Week 11 - day 02 Homework"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(rpart)
+library(rpart.plot)
+library(janitor)
+library(yardstick)
+library(ranger)
+library(GGally)
+library(modelr)
+```
+
+```{r}
+titanic <- read_csv("data/titanic_decision_tree_data.csv")
+```
+1.
+```{r}
+titanic_clean <- titanic %>% 
+  filter(!is.na(survived)) %>% 
+  mutate(age_status = case_when(
+    age <= 16 ~ "Child",
+    age > 16 ~ "Adult"
+  ), .after = age) %>% 
+  mutate(survived = case_when(
+    survived == 0 ~ "No",
+    survived == 1 ~ "Yes"
+  )) %>% 
+  mutate(class = case_when(
+    pclass == "1" ~ "Upper Class",
+    pclass == "2" ~ "Middle Class",
+    pclass == "3" ~ "Lower Class"
+  )) %>% 
+  mutate(port_embarked = case_when(
+    embarked == "S" ~ "Southampton",
+    embarked == "Q" ~ "Queenstown",
+    embarked == "C" ~ "Cherbourg"
+   )) %>% 
+  mutate(across(c(sex, survived, class, port_embarked), as.factor)) %>% 
+  select(sex, age_status, class, port_embarked, sib_sp, parch, survived) %>% 
+  drop_na()
+```
+
+2.
+```{r message=FALSE, warning=FALSE}
+titanic_clean %>% 
+  ggpairs()
+```
+Looks like there is some significant relationships between survival and:
+sex
+age_status
+class
+
+Some relationship between survival and:
+parch
+port_embarked?
+
+3.
+```{r}
+n_data <- nrow(titanic_clean)
+
+test_index <- sample(1:n_data, size = n_data * 0.20)
+
+# went with 20% so the majority of the data is used for training, but a good chunk is reserved for testing
+
+titanic_test <- slice(titanic_clean, test_index)
+
+titanic_train <- slice(titanic_clean, -test_index)
+
+# checking proportions
+
+titanic_test %>% 
+  tabyl(survived)
+
+titanic_train %>% 
+  tabyl(survived)
+
+# Pretty close to each other
+```
+
+4.
+```{r}
+titanic_fit <- rpart(
+  formula = survived ~ .,
+  data = titanic_train,
+  method = "class"
+)
+```
+
+```{r}
+rpart.plot(titanic_fit,
+           yesno = 2,
+           fallen.leaves = FALSE,
+           faclen = 10, # Factor Length
+           digits = 4,
+           under = FALSE,
+           box.palette = "Purples") 
+
+rpart.plot(titanic_fit,
+           yesno = 2,
+           fallen.leaves = FALSE,
+           faclen = 10, # Factor Length
+           digits = 4,
+           extra = 101,
+           under = FALSE,
+           box.palette = "Purples") 
+```
+
+5.
+The above tells us the following:
+Passengers generally has a 0.39 chance of dying.
+
+MEN:
+64% of the dataset, men, had a 0.18 chance of dying.
+Lower class and middle class men had a lower chance of survival than upper class men, and represent almost half the data
+Men classified as adults (over 16) had a very low rate of survival, at 0.09. Male children had a better chance, but the proportion still leans towards dying.
+Men having siblings/spouses didn't make much of a difference, but you had a slightly better chance with less than 3 siblings/spouses
+Men with families had a better chance of survival than men without
+
+WOMEN
+36% of the dataset, women, had a higher chance of surviving, at 0.77.
+Lower class women's chances of survival were close to 50/50 , but middle and upper generally survived.
+Women with families with more than 2 family members aboard had a lower chance of survival than those with less than 2 or none
+Adult women had a lower chance of survival than female children
+
+It seems that middle to upper class women had the highest chance of survival, while Adult lower/middle class men had the lowest
+
+The most important variables here seem to be gender followed by class
+
+6.
+
+```{r}
+titanic_test_pred %>% 
+  select(survived, pred) %>% 
+  filter(survived == pred)
+
+titanic_test_pred %>% 
+  select(survived, pred) %>% 
+  filter(survived != pred)
+```
+
+```{r}
+titanic_test_pred <- titanic_test %>% 
+  add_predictions(titanic_fit, type = "class")
+
+conf_mat <- titanic_test_pred %>% 
+  conf_mat(truth = survived, estimate = pred)
+
+conf_mat
+```
+This tells us that this model is better at predicting when someone survived as opposed to when they didn't.
+We have only 5 false negatives opposed to 32 false positives.
+There are 105 correct predictions total, and 37 incorrect ones.
+pred = 105 / (105+37)
+       0.7394366 
+odds = 0.7394366 / (1 - 0.7394366)
+     = 2.837838
