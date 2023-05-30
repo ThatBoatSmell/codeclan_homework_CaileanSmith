@@ -29,6 +29,7 @@ Market segmentation is based on customer preferences
 An investigation of the social networks that exist
 Segmentation of an image
 Recommendation Engines
+____________________________________
 
 Logistical Regression
 
@@ -36,12 +37,15 @@ What is it?
 
 Statistical method used for building machine learning models where the dependent variable is binary.
 Used to describe data and the relationship between one dependent variable and one or more independent variables.
+Estimates the probability of something happening based on a dataset of independent variables
 
 Advantages
 
-Less computationally intensive
+Less computationally intensive, making it faster compared to other methods
 Highly Interpretable
 Easy to implement and train a model with
+Gives probability - can be more useful to know something is 85% likely compared to 54% likely than just knowing the final classification
+Logistic regression can also be extended from binary classification to multi-class classification. Then it is called Multinomial Regression. - this appears to be a threat
 
 Disadvantages
 
@@ -51,6 +55,6 @@ Requires a large dataset and sufficient training examples
 
 Suitable areas of application
 
-In marketing, logistic regression can be used to predict if a targeted audience will respond or not
+In marketing, logistic regression can be used to predict if a targeted audience will respond or not - e.g how a user will interact with a website
 In the financial industry, logistic regression can be used to predict if a transaction is fraudulent or not
-Text recognition - Can use logistical regression to train a binary classifier that can differentiate between distrinct characters
+Text recognition - Can use logistical regression to train a binary classifier that can differentiate between distinct characters
