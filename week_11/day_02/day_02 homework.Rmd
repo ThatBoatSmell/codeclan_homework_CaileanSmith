@@ -99,6 +99,7 @@ rpart.plot(titanic_fit,
            under = FALSE,
            box.palette = "Purples") 
 
+
 rpart.plot(titanic_fit,
            yesno = 2,
            fallen.leaves = FALSE,
@@ -158,3 +159,24 @@ pred = 105 / (105+37)
        0.7394366 
 odds = 0.7394366 / (1 - 0.7394366)
      = 2.837838
+     
+     
+____________________________________________________
+
+Notes:
+
+Why do we have a test/train split?
+To see how the model performs on unseen data - Helps prevent overfitting
+You want to make sure your training data is "reliable" to some extent
+If the proportion of data is too small, the test set will never actually mean anything
+Test split should be big enough to represent "unseen" data
+With a lot of data (several thousand rows for example), a smaller test split is acceptable
+For less data (hundreds of rows or lower), you need a larger test split
+_Typically_, they don't get much larger than 30% or lower than 10%
+
+Usually, K-fold validation is better than test/train splits
+
+Odds:
+Odds are defined by the ratio of successes to failure - 
+So in my example above, i got 2.84 successes for every 1 failure - so 2.84:1 odds of being correct
+(Probably not worth doing on a confusion matrix though - Odds aren't the best measure of evaluating the effectiveness of a model)
