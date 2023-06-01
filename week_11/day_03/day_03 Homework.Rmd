@@ -97,6 +97,6 @@ customers_clusterers %>%
 Clustering may be appropriate, as there is definite groups within this data - Some are more spread out that others, but there is a pattern.
 
 5.
-Cluster 2 is the high income and high spending score cluster - These might be worth targetting for an advertising campaign, but seeing as they are already spending, it might not be quite as profitable than targetting another cluster. 
+Cluster 2 is the high income and high spending score cluster - These might be worth targeting for an advertising campaign, but seeing as they are already spending, it might not be quite as profitable than targeting another cluster. 
 
-Cluster 4 is the mid range, average income, average spending. This might be a good target for marketting, as they are already spending, just not as much, and they have more income to fund said spending
+Cluster 4 is the mid range, average income, average spending. This might be a good target for marketing, as they are already spending, just not as much, and they have more income to fund said spending
