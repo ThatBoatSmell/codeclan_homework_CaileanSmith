@@ -1,0 +1,149 @@
+---
+title: "Text Mining Homework"
+output: html_notebook
+---
+```{r}
+library(tidyverse)
+library(tidytext)
+library(ggwordcloud)
+library(janeaustenr)
+```
+
+1.
+Find the most common words in both Pride & Prejudice and Sense & Sensibility.
+
+```{r}
+pride_tbl <- tibble(
+  id = seq(prideprejudice),
+  text = prideprejudice
+)
+sense_tbl <-  tibble(
+  id = seq(sensesensibility),
+  text = sensesensibility
+)
+```
+
+```{r}
+pride_tbl_case <- pride_tbl %>% 
+  unnest_tokens(input = text, output = word, to_lower = FALSE)
+
+pride_tbl_caseless <- pride_tbl %>% 
+  unnest_tokens(input = text, output = word, to_lower = TRUE)
+
+sense_tbl_case <- sense_tbl %>% 
+  unnest_tokens(input = text, output = word, to_lower = FALSE)
+
+sense_tbl_caseless <- sense_tbl %>% 
+  unnest_tokens(input = text, output = word, to_lower = TRUE)
+```
+
+```{r}
+pride_tbl_case %>% 
+  count(word) %>% 
+  arrange(desc(n)) %>% 
+  mutate(which_one_is_this = "pride with cases unchanged")
+
+pride_tbl_caseless %>% 
+  count(word) %>% 
+  arrange(desc(n))%>% 
+  mutate(which_one_is_this = "pride with cases changed")
+
+sense_tbl_case %>% 
+  count(word) %>% 
+  arrange(desc(n))%>% 
+  mutate(which_one_is_this = "sense with cases unchanged")
+
+sense_tbl_caseless %>% 
+  count(word) %>% 
+  arrange(desc(n))%>% 
+  mutate(which_one_is_this = "sense with cases changed")
+```
+
+```{r}
+pride_tbl_case %>% 
+  anti_join(stop_words) %>% 
+  count(word) %>%  
+  arrange(desc(n)) %>% 
+  mutate(which_one_is_this = "pride with cases unchanged")
+
+pride_tbl_caseless %>% 
+  anti_join(stop_words) %>% 
+  count(word) %>% 
+  arrange(desc(n))%>% 
+  mutate(which_one_is_this = "pride with cases changed")
+
+sense_tbl_case %>% 
+  anti_join(stop_words) %>% 
+  count(word) %>% 
+  arrange(desc(n))%>% 
+  mutate(which_one_is_this = "sense with cases unchanged")
+
+sense_tbl_caseless %>% 
+  anti_join(stop_words) %>% 
+  count(word) %>% 
+  arrange(desc(n))%>% 
+  mutate(which_one_is_this = "sense with cases changed")
+```
+
+```{r}
+sentiment <- function(dataframe, lexicon) {
+  dataframe %>% 
+  anti_join(stop_words) %>% 
+  inner_join(get_sentiments(lexicon)) %>% 
+  count(word) %>%  
+  arrange(desc(n)) %>% 
+  mutate(which_sentiment_though = lexicon)
+}
+
+# This may be considered extreme but here they all are 
+
+sentiment(pride_tbl_case, "loughran")
+sentiment(pride_tbl_case, "bing")
+sentiment(pride_tbl_case, "nrc")
+sentiment(pride_tbl_case, "afinn")
+sentiment(pride_tbl_caseless, "loughran")
+sentiment(pride_tbl_caseless, "bing")
+sentiment(pride_tbl_caseless, "nrc")
+sentiment(pride_tbl_caseless, "afinn")
+sentiment(sense_tbl_case, "loughran")
+sentiment(sense_tbl_case, "bing")
+sentiment(sense_tbl_case, "nrc")
+sentiment(sense_tbl_case, "afinn")
+sentiment(sense_tbl_caseless, "loughran")
+sentiment(sense_tbl_caseless, "bing")
+sentiment(sense_tbl_caseless, "nrc")
+sentiment(sense_tbl_caseless, "afinn")
+```
+
+
+```{r}
+pride_tbl_case %>% 
+  anti_join(stop_words) %>% 
+  inner_join(get_sentiments("afinn")) %>% 
+  count(word) %>%  
+  arrange(desc(n)) %>% 
+  mutate(which_sentiment_though = "afinn")
+```
+```{r}
+# Instead of me doing the visualisation, why don't you do it
+wordcloud_it <- function(dataframe, palette) {
+  
+  dataframe_count <- dataframe %>% 
+  anti_join(stop_words) %>% 
+  count(word) %>% 
+  drop_na()
+  
+  ggwordcloud(dataframe_count$word, dataframe_count$n, min.freq = 10, random.color = TRUE, colors = palette)
+}
+
+palette_1 <- c("#f72585", "#b5179e", "#7209b7", "#480ca8", "#3a0ca3", "#3f37c9", "#4361ee", "#4895ef", "#4cc9f0")
+palette_2 <- c("#d9ed92", "#b5e48c", "#99d98c", "#76c893", "#52b69a", "#34a0a4", "#168aad", "#1a759f", "#1e6091", "#184e77")
+palette_3 <- c("#ff595e", "#ffca3a", "#8ac926", "#1982c4", "#6a4c93")
+
+
+# dataframes you can use: sense_tbl_case, sense_tbl_caseless, pride_tbl_case, pride_tbl_caseless
+wordcloud_it(sense_tbl_caseless, palette_3)
+wordcloud_it(pride_tbl_caseless, palette_2)
+
+```
+
